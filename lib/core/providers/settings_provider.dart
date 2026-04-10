@@ -38,27 +38,15 @@ class SettingsProvider extends ChangeNotifier {
   static const String _providerGroupCollapsedKey =
       'provider_group_collapsed_v1'; // groupId|__ungrouped__ -> bool
   static const String providerUngroupedGroupKey = '__ungrouped__';
-  static const List<String> _builtInProviderKeysInOrder = [
-    'OpenAI',
-    'SiliconFlow',
-    'Gemini',
-    'OpenRouter',
-    'KelivoIN',
-    'Tensdaq',
-    'DeepSeek',
-    'AIhubmix',
-    'Aliyun',
-    'Zhipu AI',
-    'Claude',
-    'Grok',
-    'ByteDance',
-  ];
+  static const List<String> _builtInProviderKeysInOrder = ['OpenRouter'];
   static const Set<String> _builtInProviderKeys = {
     ..._builtInProviderKeysInOrder,
   };
   static const String _themeModeKey = 'theme_mode_v1';
   static const String _providerConfigsKey = 'provider_configs_v1';
   static const String _providerConfigsBackupKey = 'provider_configs_backup_v1';
+  static const String _deletedBuiltInProviderKeysKey =
+      'deleted_builtin_providers_v1';
   static const String _migrationsVersionKey = 'migrations_version_v1';
   static const int _embeddingOverridesMigrationVersion = 3;
   static const Set<String> _embeddingTypeStrings = {'embedding', 'embeddings'};
@@ -312,6 +300,8 @@ class SettingsProvider extends ChangeNotifier {
   bool get desktopRightSidebarOpen => _desktopRightSidebarOpen;
 
   Map<String, ProviderConfig> _providerConfigs = {};
+  // Built-in provider keys that the user has explicitly deleted.
+  Set<String> _deletedBuiltInKeys = {};
   Map<String, ProviderConfig> get providerConfigs =>
       Map.unmodifiable(_providerConfigs);
   bool get hasAnyActiveModel =>
@@ -476,6 +466,9 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     _providersOrder = prefs.getStringList(_providersOrderKey) ?? [];
+    _deletedBuiltInKeys = Set<String>.from(
+      prefs.getStringList(_deletedBuiltInProviderKeysKey) ?? [],
+    );
     final m = prefs.getString(_themeModeKey);
     switch (m) {
       case 'light':
@@ -733,8 +726,7 @@ class SettingsProvider extends ChangeNotifier {
         prefs.getBool(_displayShowUserNameTimestampKey) ?? true;
     // new split settings: default to the legacy combined setting value for backward compat
     final legacyUserNameTs = _showUserNameTimestamp;
-    _showUserName =
-        prefs.getBool(_displayShowUserNameKey) ?? legacyUserNameTs;
+    _showUserName = prefs.getBool(_displayShowUserNameKey) ?? legacyUserNameTs;
     _showUserTimestamp =
         prefs.getBool(_displayShowUserTimestampKey) ?? legacyUserNameTs;
     final legacyModelNameTs = _showModelNameTimestamp;
@@ -1014,12 +1006,7 @@ class SettingsProvider extends ChangeNotifier {
       } catch (_) {}
     }
     if (_providerConfigs.isEmpty) {
-      // Seed a couple of sensible defaults on first launch, but do not recreate
-      // providers implicitly during later reads (e.g., when switching chats).
-      ensureProviderConfig('KelivoIN', defaultName: 'KelivoIN');
-      ensureProviderConfig('Tensdaq', defaultName: 'Tensdaq');
-      ensureProviderConfig('SiliconFlow', defaultName: 'SiliconFlow');
-      ensureProviderConfig('AIhubmix', defaultName: 'AIhubmix');
+      // No providers on first launch; list starts empty (user adds as needed).
     }
 
     // kick off a one-time connectivity test for services (exclude local Bing)
@@ -1533,7 +1520,7 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   Set<String> _knownProviderKeys() => <String>{
-    ..._builtInProviderKeys,
+    ..._builtInProviderKeys.where((k) => !_deletedBuiltInKeys.contains(k)),
     ..._providerConfigs.keys,
   };
 
@@ -2135,8 +2122,16 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   Future<void> removeProviderConfig(String key) async {
-    if (!_providerConfigs.containsKey(key)) return;
+    final isBuiltIn = _builtInProviderKeys.contains(key);
+    // For built-in providers that have no custom config stored, we still need
+    // to record the deletion so they don't reappear after cleanup.
+    if (!isBuiltIn && !_providerConfigs.containsKey(key)) return;
+
     _providerConfigs.remove(key);
+    // Track explicitly deleted built-in providers so cleanup doesn't re-add them.
+    if (isBuiltIn) {
+      _deletedBuiltInKeys.add(key);
+    }
     // Remove from order
     _providersOrder = List<String>.from(_providersOrder.where((k) => k != key));
     // Also remove from grouping map
@@ -2190,6 +2185,12 @@ class SettingsProvider extends ChangeNotifier {
     await prefs.setString(_providerConfigsKey, jsonEncode(map));
     await prefs.setStringList(_providersOrderKey, _providersOrder);
     await prefs.setString(_providerGroupMapKey, jsonEncode(_providerGroupMap));
+    if (isBuiltIn) {
+      await prefs.setStringList(
+        _deletedBuiltInProviderKeysKey,
+        _deletedBuiltInKeys.toList(),
+      );
+    }
     notifyListeners();
   }
 
@@ -3289,6 +3290,7 @@ DO NOT GIVE ANSWERS OR DO HOMEWORK FOR THE USER. If the user asks a math or logi
     copy._providersOrder = _providersOrder;
     copy._themeMode = _themeMode;
     copy._providerConfigs = _providerConfigs;
+    copy._deletedBuiltInKeys = Set<String>.from(_deletedBuiltInKeys);
     copy._pinnedModels.addAll(_pinnedModels);
     copy._currentModelProvider = _currentModelProvider;
     copy._currentModelId = _currentModelId;
@@ -3608,6 +3610,8 @@ class ProviderConfig {
   final KeyManagementConfig? keyManagement;
   // AIhubmix promo header opt-in
   final bool? aihubmixAppCodeEnabled;
+  // Provider-level custom request headers
+  final List<Map<String, String>> customHeaders;
 
   static String resolveProxyType(String? value) {
     switch (value?.trim().toLowerCase()) {
@@ -3646,6 +3650,7 @@ class ProviderConfig {
     this.apiKeys,
     this.keyManagement,
     this.aihubmixAppCodeEnabled,
+    this.customHeaders = const [],
   });
 
   // Sentinel for copyWith nullability control (allow explicit null set)
@@ -3678,6 +3683,7 @@ class ProviderConfig {
     List<ApiKeyConfig>? apiKeys,
     KeyManagementConfig? keyManagement,
     bool? aihubmixAppCodeEnabled,
+    List<Map<String, String>>? customHeaders,
   }) => ProviderConfig(
     id: id ?? this.id,
     enabled: enabled ?? this.enabled,
@@ -3710,6 +3716,7 @@ class ProviderConfig {
     keyManagement: keyManagement ?? this.keyManagement,
     aihubmixAppCodeEnabled:
         aihubmixAppCodeEnabled ?? this.aihubmixAppCodeEnabled,
+    customHeaders: customHeaders ?? this.customHeaders,
   );
 
   Map<String, dynamic> toJson() => {
@@ -3739,6 +3746,7 @@ class ProviderConfig {
     'apiKeys': apiKeys?.map((e) => e.toJson()).toList(),
     'keyManagement': keyManagement?.toJson(),
     'aihubmixAppCodeEnabled': aihubmixAppCodeEnabled,
+    'customHeaders': customHeaders,
   };
 
   factory ProviderConfig.fromJson(Map<String, dynamic> json) => ProviderConfig(
@@ -3784,6 +3792,12 @@ class ProviderConfig {
       (json['keyManagement'] as Map?)?.cast<String, dynamic>(),
     ),
     aihubmixAppCodeEnabled: json['aihubmixAppCodeEnabled'] as bool?,
+    customHeaders:
+        (json['customHeaders'] as List?)
+            ?.whereType<Map>()
+            .map((e) => e.cast<String, String>())
+            .toList() ??
+        const [],
   );
 
   static ProviderKind classify(String key, {ProviderKind? explicitType}) {

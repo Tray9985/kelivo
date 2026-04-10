@@ -1112,6 +1112,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get hotkeyToggleTopicPanel => '切换话题显示';
 
   @override
+  String get hotkeyToggleSidebar => '切换侧边栏';
+
+  @override
   String get hotkeysPressShortcut => '按下快捷键';
 
   @override
@@ -2467,6 +2470,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get providerDetailPageNetworkTab => '网络代理';
+
+  @override
+  String get providerDetailPageCustomHeadersTitle => '自定义请求头';
+
+  @override
+  String get providerDetailPageCustomHeadersAdd => '添加';
+
+  @override
+  String get providerDetailPageCustomHeadersEmpty => '暂无自定义请求头';
+
+  @override
+  String get providerDetailPageCustomHeaderNameLabel => 'Header 名称';
+
+  @override
+  String get providerDetailPageCustomHeaderValueLabel => 'Header 值';
 
   @override
   String get providerDetailPageEnabledTitle => '是否启用';
@@ -5377,6 +5395,9 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get hotkeyToggleTopicPanel => '切换话题显示';
 
   @override
+  String get hotkeyToggleSidebar => '切换侧边栏';
+
+  @override
   String get hotkeysPressShortcut => '按下快捷键';
 
   @override
@@ -6701,6 +6722,21 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get providerDetailPageNetworkTab => '网络代理';
+
+  @override
+  String get providerDetailPageCustomHeadersTitle => '自定义请求头';
+
+  @override
+  String get providerDetailPageCustomHeadersAdd => '添加';
+
+  @override
+  String get providerDetailPageCustomHeadersEmpty => '暂无自定义请求头';
+
+  @override
+  String get providerDetailPageCustomHeaderNameLabel => 'Header 名称';
+
+  @override
+  String get providerDetailPageCustomHeaderValueLabel => 'Header 值';
 
   @override
   String get providerDetailPageEnabledTitle => '是否启用';
@@ -9590,6 +9626,9 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get hotkeyToggleTopicPanel => '切換話題顯示';
 
   @override
+  String get hotkeyToggleSidebar => '切換側邊欄';
+
+  @override
   String get hotkeysPressShortcut => '按下快捷鍵';
 
   @override
@@ -10944,6 +10983,21 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get providerDetailPageNetworkTab => '網路代理';
+
+  @override
+  String get providerDetailPageCustomHeadersTitle => '自訂請求標頭';
+
+  @override
+  String get providerDetailPageCustomHeadersAdd => '新增';
+
+  @override
+  String get providerDetailPageCustomHeadersEmpty => '暫無自訂請求標頭';
+
+  @override
+  String get providerDetailPageCustomHeaderNameLabel => '標頭名稱';
+
+  @override
+  String get providerDetailPageCustomHeaderValueLabel => '標頭值';
 
   @override
   String get providerDetailPageEnabledTitle => '是否啟用';

@@ -91,6 +91,14 @@ class HotkeyProvider extends ChangeNotifier {
       defaultMac: 'cmd+bracketright',
       enabledByDefault: true,
     ),
+    // Toggle sidebar open/close
+    'toggle_sidebar': AppHotkey(
+      id: 'toggle_sidebar',
+      l10nLabelKey: 'hotkeyToggleSidebar',
+      defaultWinLinux: 'ctrl+b',
+      defaultMac: 'cmd+b',
+      enabledByDefault: true,
+    ),
   };
 
   final Map<String, HotKey> _registered = <String, HotKey>{};
@@ -252,6 +260,9 @@ class HotkeyProvider extends ChangeNotifier {
         break;
       case 'toggle_topics':
         HotkeyEventBus.instance.fire(HotkeyAction.toggleLeftPanelTopics);
+        break;
+      case 'toggle_sidebar':
+        HotkeyEventBus.instance.fire(HotkeyAction.toggleSidebar);
         break;
     }
   }

@@ -460,6 +460,9 @@ class HomePageController extends ChangeNotifier {
             DesktopSidebarTabBus.instance.switchToTopics();
           }
           break;
+        case ChatAction.toggleSidebar:
+          toggleTabletSidebar();
+          break;
         case ChatAction.focusInput:
           if (isDesktopPlatform) {
             WidgetsBinding.instance.addPostFrameCallback((_) {

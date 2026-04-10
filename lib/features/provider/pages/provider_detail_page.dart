@@ -74,6 +74,10 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
   final Set<String> _pendingModels = {};
   bool _aihubmixAppCodeEnabled = false;
 
+  // Custom request headers
+  final List<TextEditingController> _hdrNames = [];
+  final List<TextEditingController> _hdrValues = [];
+
   @override
   void initState() {
     super.initState();
@@ -98,6 +102,10 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
     _saJsonCtrl.text = _cfg.serviceAccountJson ?? '';
     _multiKeyEnabled = _cfg.multiKeyEnabled ?? false;
     _aihubmixAppCodeEnabled = _cfg.aihubmixAppCodeEnabled ?? false;
+    for (final h in _cfg.customHeaders) {
+      _hdrNames.add(TextEditingController(text: h['name'] ?? ''));
+      _hdrValues.add(TextEditingController(text: h['value'] ?? ''));
+    }
   }
 
   @override
@@ -110,6 +118,9 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
     _locationCtrl.dispose();
     _projectCtrl.dispose();
     _saJsonCtrl.dispose();
+    for (final c in [..._hdrNames, ..._hdrValues]) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -945,6 +956,8 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
           ],
         ],
         const SizedBox(height: 12),
+        const SizedBox(height: 12),
+        _buildCustomHeadersSection(context, cs, l10n),
         if (widget.keyName.toLowerCase() == 'siliconflow') ...[
           const SizedBox(height: 6),
           Center(
@@ -958,6 +971,102 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildCustomHeadersSection(
+    BuildContext context,
+    ColorScheme cs,
+    AppLocalizations l10n,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  l10n.providerDetailPageCustomHeadersTitle,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: cs.onSurface.withValues(alpha: 0.85),
+                  ),
+                ),
+              ),
+              IosIconButton(
+                icon: Lucide.Plus,
+                size: 18,
+                onTap: () {
+                  setState(() {
+                    _hdrNames.add(TextEditingController());
+                    _hdrValues.add(TextEditingController());
+                  });
+                },
+              ),
+            ],
+          ),
+          if (_hdrNames.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                l10n.providerDetailPageCustomHeadersEmpty,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: cs.onSurface.withValues(alpha: 0.4),
+                ),
+              ),
+            )
+          else
+            for (int i = 0; i < _hdrNames.length; i++) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: _inputRow(
+                      context,
+                      label: l10n.assistantEditHeaderNameLabel,
+                      controller: _hdrNames[i],
+                      hint: 'X-Custom-Header',
+                      onChanged: (_) => _save(),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _inputRow(
+                      context,
+                      label: l10n.assistantEditHeaderValueLabel,
+                      controller: _hdrValues[i],
+                      hint: 'value',
+                      onChanged: (_) => _save(),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  IosIconButton(
+                    icon: Lucide.Trash2,
+                    size: 18,
+                    color: cs.error,
+                    onTap: () {
+                      setState(() {
+                        _hdrNames[i].dispose();
+                        _hdrValues[i].dispose();
+                        _hdrNames.removeAt(i);
+                        _hdrValues.removeAt(i);
+                      });
+                      _save();
+                    },
+                  ),
+                ],
+              ),
+            ],
+        ],
+      ),
     );
   }
 
@@ -1988,6 +2097,14 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
           : old.serviceAccountJson,
       multiKeyEnabled: _multiKeyEnabled,
       aihubmixAppCodeEnabled: _aihubmixAppCodeEnabled,
+      customHeaders: [
+        for (int i = 0; i < _hdrNames.length; i++)
+          if (_hdrNames[i].text.trim().isNotEmpty)
+            {
+              'name': _hdrNames[i].text.trim(),
+              'value': _hdrValues[i].text.trim(),
+            },
+      ],
       // preserve models and modelOverrides and proxy fields implicitly via copyWith
     );
     await settings.setProviderConfig(widget.keyName, updated);

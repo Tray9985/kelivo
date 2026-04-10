@@ -81,6 +81,45 @@ class _AddProviderDialogBodyState extends State<_AddProviderDialogBody>
     text: 'https://api.anthropic.com/v1',
   );
 
+  // Custom headers per tab (parallel lists: names[i] / values[i])
+  final List<TextEditingController> _openaiHdrNames = [];
+  final List<TextEditingController> _openaiHdrValues = [];
+  final List<TextEditingController> _googleHdrNames = [];
+  final List<TextEditingController> _googleHdrValues = [];
+  final List<TextEditingController> _claudeHdrNames = [];
+  final List<TextEditingController> _claudeHdrValues = [];
+
+  void _addHdr(List<TextEditingController> ns, List<TextEditingController> vs) {
+    setState(() {
+      ns.add(TextEditingController());
+      vs.add(TextEditingController());
+    });
+  }
+
+  void _removeHdr(
+    List<TextEditingController> ns,
+    List<TextEditingController> vs,
+    int i,
+  ) {
+    setState(() {
+      ns[i].dispose();
+      vs[i].dispose();
+      ns.removeAt(i);
+      vs.removeAt(i);
+    });
+  }
+
+  List<Map<String, String>> _readHdrs(
+    List<TextEditingController> ns,
+    List<TextEditingController> vs,
+  ) {
+    return [
+      for (int i = 0; i < ns.length; i++)
+        if (ns[i].text.trim().isNotEmpty)
+          {'name': ns[i].text.trim(), 'value': vs[i].text.trim()},
+    ];
+  }
+
   @override
   void dispose() {
     _tab.dispose();
@@ -97,6 +136,16 @@ class _AddProviderDialogBodyState extends State<_AddProviderDialogBody>
     _claudeName.dispose();
     _claudeKey.dispose();
     _claudeBase.dispose();
+    for (final c in [
+      ..._openaiHdrNames,
+      ..._openaiHdrValues,
+      ..._googleHdrNames,
+      ..._googleHdrValues,
+      ..._claudeHdrNames,
+      ..._claudeHdrValues,
+    ]) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -244,6 +293,7 @@ class _AddProviderDialogBodyState extends State<_AddProviderDialogBody>
         proxyUsername: '',
         proxyPassword: '',
         aihubmixAppCodeEnabled: promo,
+        customHeaders: _readHdrs(_openaiHdrNames, _openaiHdrValues),
       );
       await settings.setProviderConfig(keyName, cfg);
       createdKey = keyName;
@@ -280,6 +330,7 @@ class _AddProviderDialogBodyState extends State<_AddProviderDialogBody>
         proxyUsername: '',
         proxyPassword: '',
         aihubmixAppCodeEnabled: promo,
+        customHeaders: _readHdrs(_googleHdrNames, _googleHdrValues),
       );
       await settings.setProviderConfig(keyName, cfg);
       createdKey = keyName;
@@ -306,6 +357,7 @@ class _AddProviderDialogBodyState extends State<_AddProviderDialogBody>
         proxyUsername: '',
         proxyPassword: '',
         aihubmixAppCodeEnabled: promo,
+        customHeaders: _readHdrs(_claudeHdrNames, _claudeHdrValues),
       );
       await settings.setProviderConfig(keyName, cfg);
       createdKey = keyName;
@@ -469,6 +521,14 @@ class _AddProviderDialogBodyState extends State<_AddProviderDialogBody>
           controller: _openaiPath,
           decoration: _deskInputDecoration(context, hint: '/chat/completions'),
         ),
+        const SizedBox(height: 12),
+        _buildHeadersSection(
+          l10n,
+          _openaiHdrNames,
+          _openaiHdrValues,
+          () => _addHdr(_openaiHdrNames, _openaiHdrValues),
+          (i) => _removeHdr(_openaiHdrNames, _openaiHdrValues, i),
+        ),
       ],
     );
   }
@@ -548,6 +608,14 @@ class _AddProviderDialogBodyState extends State<_AddProviderDialogBody>
             label: Text(l10n.addProviderSheetImportJsonButton),
           ),
         ),
+        const SizedBox(height: 12),
+        _buildHeadersSection(
+          l10n,
+          _googleHdrNames,
+          _googleHdrValues,
+          () => _addHdr(_googleHdrNames, _googleHdrValues),
+          (i) => _removeHdr(_googleHdrNames, _googleHdrValues, i),
+        ),
       ],
     );
   }
@@ -582,6 +650,102 @@ class _AddProviderDialogBodyState extends State<_AddProviderDialogBody>
             hint: 'https://api.anthropic.com/v1',
           ),
         ),
+        const SizedBox(height: 12),
+        _buildHeadersSection(
+          l10n,
+          _claudeHdrNames,
+          _claudeHdrValues,
+          () => _addHdr(_claudeHdrNames, _claudeHdrValues),
+          (i) => _removeHdr(_claudeHdrNames, _claudeHdrValues, i),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeadersSection(
+    AppLocalizations l10n,
+    List<TextEditingController> names,
+    List<TextEditingController> values,
+    VoidCallback onAdd,
+    void Function(int) onRemove,
+  ) {
+    final cs = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                l10n.providerDetailPageCustomHeadersTitle,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: cs.onSurface.withValues(alpha: 0.8),
+                ),
+              ),
+            ),
+            TextButton.icon(
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              onPressed: onAdd,
+              icon: Icon(lucide.Lucide.Plus, size: 14, color: cs.primary),
+              label: Text(
+                l10n.providerDetailPageCustomHeadersAdd,
+                style: TextStyle(fontSize: 13, color: cs.primary),
+              ),
+            ),
+          ],
+        ),
+        if (names.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, bottom: 4),
+            child: Text(
+              l10n.providerDetailPageCustomHeadersEmpty,
+              style: TextStyle(
+                fontSize: 12,
+                color: cs.onSurface.withValues(alpha: 0.4),
+              ),
+            ),
+          )
+        else
+          for (int i = 0; i < names.length; i++) ...[
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: names[i],
+                    style: const TextStyle(fontSize: 13),
+                    decoration: _deskInputDecoration(
+                      context,
+                      hint: l10n.assistantEditHeaderNameLabel,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: TextField(
+                    controller: values[i],
+                    style: const TextStyle(fontSize: 13),
+                    decoration: _deskInputDecoration(
+                      context,
+                      hint: l10n.assistantEditHeaderValueLabel,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                IconButton(
+                  icon: Icon(lucide.Lucide.Trash2, size: 16, color: cs.error),
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(),
+                  onPressed: () => onRemove(i),
+                ),
+              ],
+            ),
+          ],
       ],
     );
   }

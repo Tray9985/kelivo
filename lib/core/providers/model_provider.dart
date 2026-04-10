@@ -133,6 +133,7 @@ class OpenAIProvider extends BaseProvider {
     try {
       final uri = Uri.parse('${cfg.baseUrl}/models');
       final headers = <String, String>{};
+      headers.addAll(providerDefaultHeaders(cfg));
       if (key.isNotEmpty) headers['Authorization'] = 'Bearer $key';
       final res = await client.get(uri, headers: headers);
       if (res.statusCode >= 200 && res.statusCode < 300) {
@@ -164,6 +165,7 @@ class ClaudeProvider extends BaseProvider {
     try {
       final uri = Uri.parse('${cfg.baseUrl}/models');
       final headers = <String, String>{'anthropic-version': anthropicVersion};
+      headers.addAll(providerDefaultHeaders(cfg));
       if (key.isNotEmpty) headers['x-api-key'] = key;
       final res = await client.get(uri, headers: headers);
       if (res.statusCode >= 200 && res.statusCode < 300) {
@@ -209,6 +211,7 @@ class GoogleProvider extends BaseProvider {
     try {
       final url = _buildUrl(cfg);
       final headers = <String, String>{};
+      headers.addAll(providerDefaultHeaders(cfg));
       if (cfg.vertexAI == true) {
         final jsonStr = (cfg.serviceAccountJson ?? '').trim();
         if (jsonStr.isNotEmpty) {

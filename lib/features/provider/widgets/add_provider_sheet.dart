@@ -91,6 +91,45 @@ class _AddProviderSheetState extends State<_AddProviderSheet>
     text: 'https://api.anthropic.com/v1',
   );
 
+  // Custom headers per tab (parallel lists: names[i] / values[i])
+  final List<TextEditingController> _openaiHdrNames = [];
+  final List<TextEditingController> _openaiHdrValues = [];
+  final List<TextEditingController> _googleHdrNames = [];
+  final List<TextEditingController> _googleHdrValues = [];
+  final List<TextEditingController> _claudeHdrNames = [];
+  final List<TextEditingController> _claudeHdrValues = [];
+
+  void _addHdr(List<TextEditingController> ns, List<TextEditingController> vs) {
+    setState(() {
+      ns.add(TextEditingController());
+      vs.add(TextEditingController());
+    });
+  }
+
+  void _removeHdr(
+    List<TextEditingController> ns,
+    List<TextEditingController> vs,
+    int i,
+  ) {
+    setState(() {
+      ns[i].dispose();
+      vs[i].dispose();
+      ns.removeAt(i);
+      vs.removeAt(i);
+    });
+  }
+
+  List<Map<String, String>> _readHdrs(
+    List<TextEditingController> ns,
+    List<TextEditingController> vs,
+  ) {
+    return [
+      for (int i = 0; i < ns.length; i++)
+        if (ns[i].text.trim().isNotEmpty)
+          {'name': ns[i].text.trim(), 'value': vs[i].text.trim()},
+    ];
+  }
+
   Widget _inputRow({
     required String label,
     required TextEditingController controller,
@@ -228,6 +267,14 @@ class _AddProviderSheetState extends State<_AddProviderSheet>
             controller: _openaiPath,
             hint: '/chat/completions',
           ),
+        const SizedBox(height: 10),
+        _buildHeadersSection(
+          l10n,
+          _openaiHdrNames,
+          _openaiHdrValues,
+          () => _addHdr(_openaiHdrNames, _openaiHdrValues),
+          (i) => _removeHdr(_openaiHdrNames, _openaiHdrValues, i),
+        ),
       ],
     );
   }
@@ -286,7 +333,15 @@ class _AddProviderSheetState extends State<_AddProviderSheet>
               ),
             ],
           ),
+          const SizedBox(height: 10),
         ],
+        _buildHeadersSection(
+          l10n,
+          _googleHdrNames,
+          _googleHdrValues,
+          () => _addHdr(_googleHdrNames, _googleHdrValues),
+          (i) => _removeHdr(_googleHdrNames, _googleHdrValues, i),
+        ),
       ],
     );
   }
@@ -313,6 +368,156 @@ class _AddProviderSheetState extends State<_AddProviderSheet>
         _inputRow(label: 'API Key', controller: _claudeKey),
         const SizedBox(height: 10),
         _inputRow(label: 'API Base Url', controller: _claudeBase),
+        const SizedBox(height: 10),
+        _buildHeadersSection(
+          l10n,
+          _claudeHdrNames,
+          _claudeHdrValues,
+          () => _addHdr(_claudeHdrNames, _claudeHdrValues),
+          (i) => _removeHdr(_claudeHdrNames, _claudeHdrValues, i),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeadersSection(
+    AppLocalizations l10n,
+    List<TextEditingController> names,
+    List<TextEditingController> values,
+    VoidCallback onAdd,
+    void Function(int) onRemove,
+  ) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                l10n.providerDetailPageCustomHeadersTitle,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: cs.onSurface.withValues(alpha: 0.8),
+                ),
+              ),
+            ),
+            GestureDetector(
+              onTap: onAdd,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Lucide.Plus, size: 14, color: cs.primary),
+                    const SizedBox(width: 3),
+                    Text(
+                      l10n.providerDetailPageCustomHeadersAdd,
+                      style: TextStyle(fontSize: 13, color: cs.primary),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (names.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 4, bottom: 4),
+            child: Text(
+              l10n.providerDetailPageCustomHeadersEmpty,
+              style: TextStyle(
+                fontSize: 12,
+                color: cs.onSurface.withValues(alpha: 0.4),
+              ),
+            ),
+          )
+        else
+          for (int i = 0; i < names.length; i++) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: names[i],
+                    decoration: InputDecoration(
+                      hintText: l10n.assistantEditHeaderNameLabel,
+                      filled: true,
+                      fillColor: isDark ? Colors.white10 : Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: cs.outlineVariant.withValues(alpha: 0.4),
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: cs.outlineVariant.withValues(alpha: 0.4),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: cs.primary.withValues(alpha: 0.5),
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 10,
+                      ),
+                      isDense: true,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: TextField(
+                    controller: values[i],
+                    decoration: InputDecoration(
+                      hintText: l10n.assistantEditHeaderValueLabel,
+                      filled: true,
+                      fillColor: isDark ? Colors.white10 : Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: cs.outlineVariant.withValues(alpha: 0.4),
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: cs.outlineVariant.withValues(alpha: 0.4),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: cs.primary.withValues(alpha: 0.5),
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 10,
+                      ),
+                      isDense: true,
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => onRemove(i),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 4,
+                    ),
+                    child: Icon(Lucide.Trash2, size: 16, color: cs.error),
+                  ),
+                ),
+              ],
+            ),
+          ],
       ],
     );
   }
@@ -378,6 +583,7 @@ class _AddProviderSheetState extends State<_AddProviderSheet>
         proxyUsername: '',
         proxyPassword: '',
         aihubmixAppCodeEnabled: promo,
+        customHeaders: _readHdrs(_openaiHdrNames, _openaiHdrValues),
       );
       await settings.setProviderConfig(keyName, cfg);
       createdKey = keyName;
@@ -414,6 +620,7 @@ class _AddProviderSheetState extends State<_AddProviderSheet>
         proxyUsername: '',
         proxyPassword: '',
         aihubmixAppCodeEnabled: promo,
+        customHeaders: _readHdrs(_googleHdrNames, _googleHdrValues),
       );
       await settings.setProviderConfig(keyName, cfg);
       createdKey = keyName;
@@ -440,6 +647,7 @@ class _AddProviderSheetState extends State<_AddProviderSheet>
         proxyUsername: '',
         proxyPassword: '',
         aihubmixAppCodeEnabled: promo,
+        customHeaders: _readHdrs(_claudeHdrNames, _claudeHdrValues),
       );
       await settings.setProviderConfig(keyName, cfg);
       createdKey = keyName;

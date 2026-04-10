@@ -244,19 +244,7 @@ class _DesktopProvidersBodyState extends State<_DesktopProvidersBody> {
 
     // Base providers (same as mobile list)
     List<({String name, String key})> base() => [
-      (name: 'OpenAI', key: 'OpenAI'),
-      (name: l10n.providersPageSiliconFlowName, key: 'SiliconFlow'),
-      (name: 'Gemini', key: 'Gemini'),
       (name: 'OpenRouter', key: 'OpenRouter'),
-      (name: 'KelivoIN', key: 'KelivoIN'),
-      (name: 'Tensdaq', key: 'Tensdaq'),
-      (name: 'DeepSeek', key: 'DeepSeek'),
-      (name: 'AIhubmix', key: 'AIhubmix'),
-      (name: l10n.providersPageAliyunName, key: 'Aliyun'),
-      (name: l10n.providersPageZhipuName, key: 'Zhipu AI'),
-      (name: 'Claude', key: 'Claude'),
-      (name: 'Grok', key: 'Grok'),
-      (name: l10n.providersPageByteDanceName, key: 'ByteDance'),
     ];
 
     final cfgs = settings.providerConfigs;
@@ -1988,6 +1976,34 @@ class _DesktopProviderDetailPaneState
         final proxyPassCtrl = TextEditingController(
           text: cfg.proxyPassword ?? '',
         );
+        final hdrNames = <TextEditingController>[
+          for (final h in cfg.customHeaders)
+            TextEditingController(text: h['name'] ?? ''),
+        ];
+        final hdrValues = <TextEditingController>[
+          for (final h in cfg.customHeaders)
+            TextEditingController(text: h['value'] ?? ''),
+        ];
+        Future<void> saveHeaders() async {
+          final old = sp.getProviderConfig(
+            widget.providerKey,
+            defaultName: widget.displayName,
+          );
+          await sp.setProviderConfig(
+            widget.providerKey,
+            old.copyWith(
+              customHeaders: [
+                for (int i = 0; i < hdrNames.length; i++)
+                  if (hdrNames[i].text.trim().isNotEmpty)
+                    {
+                      'name': hdrNames[i].text.trim(),
+                      'value': hdrValues[i].text.trim(),
+                    },
+              ],
+            ),
+          );
+        }
+
         return Dialog(
           backgroundColor: cs.surface,
           shape: RoundedRectangleBorder(
@@ -2772,6 +2788,157 @@ class _DesktopProviderDetailPaneState
                                   : CrossFadeState.showFirst,
                               duration: const Duration(milliseconds: 180),
                               sizeCurve: Curves.easeOutCubic,
+                            ),
+                            const SizedBox(height: 12),
+                            // 6) Custom request headers
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 4),
+                              child: Text(
+                                l10n.providerDetailPageCustomHeadersTitle,
+                                style: TextStyle(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: cs.onSurface.withValues(alpha: 0.85),
+                                ),
+                              ),
+                            ),
+                            StatefulBuilder(
+                              builder: (ctx2, setLocal) {
+                                return Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    if (hdrNames.isEmpty)
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          bottom: 6,
+                                        ),
+                                        child: Text(
+                                          l10n.providerDetailPageCustomHeadersEmpty,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: cs.onSurface.withValues(
+                                              alpha: 0.4,
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                    else
+                                      for (
+                                        int i = 0;
+                                        i < hdrNames.length;
+                                        i++
+                                      ) ...[
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            bottom: 6,
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Expanded(
+                                                child: Focus(
+                                                  onFocusChange: (has) async {
+                                                    if (!has)
+                                                      await saveHeaders();
+                                                  },
+                                                  child: TextField(
+                                                    controller: hdrNames[i],
+                                                    style: const TextStyle(
+                                                      fontSize: 13,
+                                                    ),
+                                                    decoration:
+                                                        _inputDecoration(
+                                                          ctx,
+                                                        ).copyWith(
+                                                          hintText: l10n
+                                                              .assistantEditHeaderNameLabel,
+                                                        ),
+                                                    textInputAction:
+                                                        TextInputAction.done,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Expanded(
+                                                child: Focus(
+                                                  onFocusChange: (has) async {
+                                                    if (!has)
+                                                      await saveHeaders();
+                                                  },
+                                                  child: TextField(
+                                                    controller: hdrValues[i],
+                                                    style: const TextStyle(
+                                                      fontSize: 13,
+                                                    ),
+                                                    decoration:
+                                                        _inputDecoration(
+                                                          ctx,
+                                                        ).copyWith(
+                                                          hintText: l10n
+                                                              .assistantEditHeaderValueLabel,
+                                                        ),
+                                                    textInputAction:
+                                                        TextInputAction.done,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              _IconBtn(
+                                                icon: lucide.Lucide.Trash2,
+                                                color: cs.error,
+                                                onTap: () async {
+                                                  setLocal(() {
+                                                    hdrNames[i].dispose();
+                                                    hdrValues[i].dispose();
+                                                    hdrNames.removeAt(i);
+                                                    hdrValues.removeAt(i);
+                                                  });
+                                                  await saveHeaders();
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: TextButton.icon(
+                                        style: TextButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 4,
+                                          ),
+                                          minimumSize: Size.zero,
+                                          tapTargetSize:
+                                              MaterialTapTargetSize.shrinkWrap,
+                                        ),
+                                        onPressed: () {
+                                          setLocal(() {
+                                            hdrNames.add(
+                                              TextEditingController(),
+                                            );
+                                            hdrValues.add(
+                                              TextEditingController(),
+                                            );
+                                          });
+                                        },
+                                        icon: Icon(
+                                          lucide.Lucide.Plus,
+                                          size: 14,
+                                          color: cs.primary,
+                                        ),
+                                        label: Text(
+                                          l10n.providerDetailPageCustomHeadersAdd,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: cs.primary,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
                           ],
                         ),

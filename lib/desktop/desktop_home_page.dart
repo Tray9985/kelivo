@@ -114,6 +114,11 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
             ChatActionBus.instance.fire(ChatAction.toggleLeftPanelTopics);
           }
           break;
+        case HotkeyAction.toggleSidebar:
+          if (_tabIndex == 0) {
+            ChatActionBus.instance.fire(ChatAction.toggleSidebar);
+          }
+          break;
       }
     });
 

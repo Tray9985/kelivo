@@ -2225,6 +2225,12 @@ abstract class AppLocalizations {
   /// **'Toggle Topics'**
   String get hotkeyToggleTopicPanel;
 
+  /// No description provided for @hotkeyToggleSidebar.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle Sidebar'**
+  String get hotkeyToggleSidebar;
+
   /// No description provided for @hotkeysPressShortcut.
   ///
   /// In en, this message translates to:
@@ -4795,6 +4801,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Network'**
   String get providerDetailPageNetworkTab;
+
+  /// No description provided for @providerDetailPageCustomHeadersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Request Headers'**
+  String get providerDetailPageCustomHeadersTitle;
+
+  /// No description provided for @providerDetailPageCustomHeadersAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get providerDetailPageCustomHeadersAdd;
+
+  /// No description provided for @providerDetailPageCustomHeadersEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No custom headers'**
+  String get providerDetailPageCustomHeadersEmpty;
+
+  /// No description provided for @providerDetailPageCustomHeaderNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Header Name'**
+  String get providerDetailPageCustomHeaderNameLabel;
+
+  /// No description provided for @providerDetailPageCustomHeaderValueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Header Value'**
+  String get providerDetailPageCustomHeaderValueLabel;
 
   /// No description provided for @providerDetailPageEnabledTitle.
   ///

@@ -1141,6 +1141,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hotkeyToggleTopicPanel => 'Toggle Topics';
 
   @override
+  String get hotkeyToggleSidebar => 'Toggle Sidebar';
+
+  @override
   String get hotkeysPressShortcut => 'Press a shortcut';
 
   @override
@@ -2556,6 +2559,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get providerDetailPageNetworkTab => 'Network';
+
+  @override
+  String get providerDetailPageCustomHeadersTitle => 'Custom Request Headers';
+
+  @override
+  String get providerDetailPageCustomHeadersAdd => 'Add';
+
+  @override
+  String get providerDetailPageCustomHeadersEmpty => 'No custom headers';
+
+  @override
+  String get providerDetailPageCustomHeaderNameLabel => 'Header Name';
+
+  @override
+  String get providerDetailPageCustomHeaderValueLabel => 'Header Value';
 
   @override
   String get providerDetailPageEnabledTitle => 'Enabled';

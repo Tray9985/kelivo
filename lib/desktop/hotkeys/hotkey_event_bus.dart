@@ -9,6 +9,7 @@ enum HotkeyAction {
   switchModel,
   toggleLeftPanelAssistants,
   toggleLeftPanelTopics,
+  toggleSidebar,
 }
 
 class HotkeyEventBus {
