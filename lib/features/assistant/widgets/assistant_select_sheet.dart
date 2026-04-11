@@ -408,3 +408,152 @@ class _DeskAssistantRowState extends State<_DeskAssistantRow> {
     );
   }
 }
+
+// Show assistant picker for switching the current active assistant.
+// - Mobile: bottom sheet
+// - Desktop: custom dialog
+// Returns selected assistant id, or null if cancelled.
+Future<String?> showAssistantSwitchSheet(BuildContext context) async {
+  final isDesktop =
+      defaultTargetPlatform == TargetPlatform.macOS ||
+      defaultTargetPlatform == TargetPlatform.windows ||
+      defaultTargetPlatform == TargetPlatform.linux;
+  final ap = context.read<AssistantProvider>();
+  final List<Assistant> assistants = List.of(ap.assistants);
+
+  if (!isDesktop) {
+    final cs = Theme.of(context).colorScheme;
+    final maxHeight = MediaQuery.of(context).size.height * 0.8;
+    return showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: cs.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        final l10n = AppLocalizations.of(ctx)!;
+        return SafeArea(
+          top: false,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: maxHeight),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: cs.onSurface.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        l10n.assistantSwitchTitle,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    ...assistants.map((a) => _assistantRow(ctx, a)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Desktop: custom dialog with hover effects
+  String? result;
+  await showGeneralDialog<void>(
+    context: context,
+    barrierDismissible: true,
+    barrierLabel: 'assistant-switch-selector',
+    barrierColor: Colors.black.withValues(alpha: 0.15),
+    pageBuilder: (ctx, _, __) {
+      final l10n = AppLocalizations.of(ctx)!;
+      final cs = Theme.of(ctx).colorScheme;
+      final isDark = Theme.of(ctx).brightness == Brightness.dark;
+      return Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 360, maxHeight: 500),
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark
+                    ? cs.surface.withValues(alpha: 0.96)
+                    : cs.surface.withValues(alpha: 0.98),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: cs.outlineVariant.withValues(
+                    alpha: isDark ? 0.18 : 0.12,
+                  ),
+                  width: 0.8,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.32 : 0.12),
+                    blurRadius: 28,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+                    child: Text(
+                      l10n.assistantSwitchTitle,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: cs.onSurface.withValues(alpha: 0.9),
+                      ),
+                    ),
+                  ),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(0, 4, 0, 10),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: assistants
+                            .map(
+                              (a) => _DeskAssistantRow(
+                                assistant: a,
+                                onTap: (id) {
+                                  result = id;
+                                  Navigator.of(ctx).pop();
+                                },
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    },
+  );
+  return result;
+}

@@ -75,28 +75,12 @@ class HotkeyProvider extends ChangeNotifier {
       defaultMac: '',
       enabledByDefault: true,
     ),
-    // Toggle assistants panel (left topics layout only)
-    'toggle_assistants': AppHotkey(
-      id: 'toggle_assistants',
-      l10nLabelKey: 'hotkeyToggleAssistantPanel',
-      defaultWinLinux: 'ctrl+bracketleft',
-      defaultMac: 'cmd+bracketleft',
-      enabledByDefault: true,
-    ),
-    // Toggle topics panel (left topics layout only)
+    // Toggle topics panel
     'toggle_topics': AppHotkey(
       id: 'toggle_topics',
       l10nLabelKey: 'hotkeyToggleTopicPanel',
       defaultWinLinux: 'ctrl+bracketright',
       defaultMac: 'cmd+bracketright',
-      enabledByDefault: true,
-    ),
-    // Toggle sidebar open/close
-    'toggle_sidebar': AppHotkey(
-      id: 'toggle_sidebar',
-      l10nLabelKey: 'hotkeyToggleSidebar',
-      defaultWinLinux: 'ctrl+b',
-      defaultMac: 'cmd+b',
       enabledByDefault: true,
     ),
   };
@@ -255,14 +239,8 @@ class HotkeyProvider extends ChangeNotifier {
       case 'switch_model':
         HotkeyEventBus.instance.fire(HotkeyAction.switchModel);
         break;
-      case 'toggle_assistants':
-        HotkeyEventBus.instance.fire(HotkeyAction.toggleLeftPanelAssistants);
-        break;
       case 'toggle_topics':
         HotkeyEventBus.instance.fire(HotkeyAction.toggleLeftPanelTopics);
-        break;
-      case 'toggle_sidebar':
-        HotkeyEventBus.instance.fire(HotkeyAction.toggleSidebar);
         break;
     }
   }

@@ -2,13 +2,11 @@ import 'dart:async';
 
 enum ChatAction {
   newTopic,
-  toggleLeftPanelAssistants,
   toggleLeftPanelTopics,
   focusInput,
   switchModel,
   enterGlobalSearch,
   exitGlobalSearch,
-  toggleSidebar,
 }
 
 class ChatActionBus {

@@ -1112,9 +1112,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get hotkeyToggleTopicPanel => '切换话题显示';
 
   @override
-  String get hotkeyToggleSidebar => '切换侧边栏';
-
-  @override
   String get hotkeysPressShortcut => '按下快捷键';
 
   @override
@@ -1892,6 +1889,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get sideDrawerChooseAssistantTitle => '选择助手';
+
+  @override
+  String get assistantSwitchTitle => '切换助手';
 
   @override
   String get sideDrawerChooseImage => '选择图片';
@@ -5395,9 +5395,6 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get hotkeyToggleTopicPanel => '切换话题显示';
 
   @override
-  String get hotkeyToggleSidebar => '切换侧边栏';
-
-  @override
   String get hotkeysPressShortcut => '按下快捷键';
 
   @override
@@ -6175,6 +6172,9 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get sideDrawerChooseAssistantTitle => '选择助手';
+
+  @override
+  String get assistantSwitchTitle => '切换助手';
 
   @override
   String get sideDrawerChooseImage => '选择图片';
@@ -9626,9 +9626,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get hotkeyToggleTopicPanel => '切換話題顯示';
 
   @override
-  String get hotkeyToggleSidebar => '切換側邊欄';
-
-  @override
   String get hotkeysPressShortcut => '按下快捷鍵';
 
   @override
@@ -10405,6 +10402,9 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get sideDrawerChooseAssistantTitle => '選擇助理';
+
+  @override
+  String get assistantSwitchTitle => '切換助理';
 
   @override
   String get sideDrawerChooseImage => '選擇圖片';

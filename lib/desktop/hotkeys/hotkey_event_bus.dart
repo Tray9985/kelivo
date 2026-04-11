@@ -7,9 +7,7 @@ enum HotkeyAction {
   openSettings,
   newTopic,
   switchModel,
-  toggleLeftPanelAssistants,
   toggleLeftPanelTopics,
-  toggleSidebar,
 }
 
 class HotkeyEventBus {

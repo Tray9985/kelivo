@@ -144,12 +144,8 @@ class _HotkeyRowState extends State<_HotkeyRow> {
           return loc.hotkeyNewTopic;
         case 'hotkeySwitchModel':
           return loc.hotkeySwitchModel;
-        case 'hotkeyToggleAssistantPanel':
-          return loc.hotkeyToggleAssistantPanel;
         case 'hotkeyToggleTopicPanel':
           return loc.hotkeyToggleTopicPanel;
-        case 'hotkeyToggleSidebar':
-          return loc.hotkeyToggleSidebar;
         default:
           return item.l10nLabelKey;
       }

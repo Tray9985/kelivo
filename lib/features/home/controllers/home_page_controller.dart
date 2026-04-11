@@ -26,7 +26,6 @@ import '../../chat/widgets/message_edit_sheet.dart';
 import '../../chat/widgets/message_export_sheet.dart';
 import '../../../desktop/message_edit_dialog.dart';
 import '../../../desktop/hotkeys/chat_action_bus.dart';
-import '../../../desktop/hotkeys/sidebar_tab_bus.dart';
 import 'chat_controller.dart';
 import 'stream_controller.dart' as stream_ctrl;
 import 'generation_controller.dart';
@@ -440,28 +439,12 @@ class HomePageController extends ChangeNotifier {
           unawaited(createNewConversationAnimated());
           break;
         case ChatAction.toggleLeftPanelTopics:
-        case ChatAction.toggleLeftPanelAssistants:
-          if (settingsProvider.desktopTopicPosition !=
-              DesktopTopicPosition.left) {
-            return;
-          }
-          final wantAssistants =
-              (action == ChatAction.toggleLeftPanelAssistants);
-          if (!_tabletSidebarOpen) {
-            _tabletSidebarOpen = true;
-            notifyListeners();
-            try {
-              settingsProvider.setDesktopSidebarOpen(true);
-            } catch (_) {}
-          }
-          if (wantAssistants) {
-            DesktopSidebarTabBus.instance.switchToAssistants();
+          if (settingsProvider.desktopTopicPosition ==
+              DesktopTopicPosition.right) {
+            toggleRightSidebar();
           } else {
-            DesktopSidebarTabBus.instance.switchToTopics();
+            toggleTabletSidebar();
           }
-          break;
-        case ChatAction.toggleSidebar:
-          toggleTabletSidebar();
           break;
         case ChatAction.focusInput:
           if (isDesktopPlatform) {

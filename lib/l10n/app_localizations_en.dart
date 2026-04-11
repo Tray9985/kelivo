@@ -1141,9 +1141,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hotkeyToggleTopicPanel => 'Toggle Topics';
 
   @override
-  String get hotkeyToggleSidebar => 'Toggle Sidebar';
-
-  @override
   String get hotkeysPressShortcut => 'Press a shortcut';
 
   @override
@@ -1954,6 +1951,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sideDrawerChooseAssistantTitle => 'Choose Assistant';
+
+  @override
+  String get assistantSwitchTitle => 'Switch Assistant';
 
   @override
   String get sideDrawerChooseImage => 'Choose Image';

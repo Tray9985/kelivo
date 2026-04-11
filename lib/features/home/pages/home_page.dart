@@ -34,6 +34,7 @@ import '../../search/widgets/search_settings_sheet.dart';
 import '../../model/widgets/model_select_sheet.dart';
 import '../../mcp/pages/mcp_page.dart';
 import '../../provider/pages/providers_page.dart';
+import '../../assistant/widgets/assistant_select_sheet.dart';
 import '../../assistant/widgets/mcp_assistant_sheet.dart';
 import '../../quick_phrase/pages/quick_phrases_page.dart';
 import '../../quick_phrase/widgets/quick_phrase_menu.dart';
@@ -236,13 +237,7 @@ class _HomePageState extends State<HomePage>
         : _controller.titleForLocale();
 
     if (width >= AppBreakpoints.tablet) {
-      return _buildTabletLayout(
-        context,
-        title: title,
-        providerName: modelInfo.providerName,
-        modelDisplay: modelInfo.modelDisplay,
-        cs: cs,
-      );
+      return _buildTabletLayout(context, title: title, cs: cs);
     }
 
     return _buildMobileLayout(
@@ -421,8 +416,6 @@ class _HomePageState extends State<HomePage>
   Widget _buildTabletLayout(
     BuildContext context, {
     required String title,
-    required String? providerName,
-    required String? modelDisplay,
     required ColorScheme cs,
   }) {
     _controller.initDesktopUi();
@@ -440,8 +433,6 @@ class _HomePageState extends State<HomePage>
       assistantPickerCloseTick: _assistantPickerCloseTick,
       loadingConversationIds: _controller.loadingConversationIds,
       title: title,
-      providerName: providerName,
-      modelDisplay: modelDisplay,
       tabletSidebarOpen: _controller.tabletSidebarOpen,
       rightSidebarOpen: _controller.rightSidebarOpen,
       embeddedSidebarWidth: _controller.embeddedSidebarWidth,
@@ -465,7 +456,14 @@ class _HomePageState extends State<HomePage>
       onGlobalSearchQueryChanged: _controller.setGlobalSearchQuery,
       onOpenGlobalSearchResult: (convId, msgId) => _controller
           .openGlobalSearchResult(conversationId: convId, messageId: msgId),
-      onSelectModel: () => showModelSelectSheet(context),
+      onSelectAssistant: () async {
+        final ap = context.read<AssistantProvider>();
+        final selectedId = await showAssistantSwitchSheet(context);
+        if (!mounted) return;
+        if (selectedId != null) {
+          await ap.setCurrentAssistant(selectedId);
+        }
+      },
       onSidebarWidthChanged: _controller.updateSidebarWidth,
       onSidebarWidthChangeEnd: _controller.saveSidebarWidth,
       onRightSidebarWidthChanged: _controller.updateRightSidebarWidth,

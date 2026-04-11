@@ -2225,12 +2225,6 @@ abstract class AppLocalizations {
   /// **'Toggle Topics'**
   String get hotkeyToggleTopicPanel;
 
-  /// No description provided for @hotkeyToggleSidebar.
-  ///
-  /// In en, this message translates to:
-  /// **'Toggle Sidebar'**
-  String get hotkeyToggleSidebar;
-
   /// No description provided for @hotkeysPressShortcut.
   ///
   /// In en, this message translates to:
@@ -3700,6 +3694,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose Assistant'**
   String get sideDrawerChooseAssistantTitle;
+
+  /// No description provided for @assistantSwitchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch Assistant'**
+  String get assistantSwitchTitle;
 
   /// No description provided for @sideDrawerChooseImage.
   ///
