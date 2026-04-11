@@ -711,23 +711,27 @@ class HomeViewModel extends ChangeNotifier {
         settings.currentModelId;
     if (provKey == null || mdlId == null) return;
     final cfg = settings.getProviderConfig(provKey);
-    final budget = assistant?.thinkingBudget ?? settings.thinkingBudget;
+    // Title generation never needs thinking mode; force it off to avoid
+    // the model outputting <think> blocks inside the title string.
+    const budget = -1;
 
-    // Build content from messages (truncate to reasonable length)
+    // Use only the first user message as the title context —
+    // it best captures the original intent and avoids noise from
+    // assistant replies (markdown, code blocks, etc.).
     final msgs = _chatService.getMessages(convo.id);
     final tIndex = convo.truncateIndex;
     final List<ChatMessage> sourceAll = (tIndex >= 0 && tIndex <= msgs.length)
         ? msgs.sublist(tIndex)
         : msgs;
     final List<ChatMessage> source = collapseVersions(sourceAll);
-    final joined = source
-        .where((m) => m.content.isNotEmpty)
-        .map(
-          (m) =>
-              '${m.role == 'assistant' ? 'Assistant' : 'User'}: ${m.content}',
-        )
-        .join('\n\n');
-    final content = joined.length > 3000 ? joined.substring(0, 3000) : joined;
+    final firstUser = source.firstWhere(
+      (m) => m.role == 'user' && m.content.isNotEmpty,
+      orElse: () => source.first,
+    );
+    final rawContent = firstUser.content;
+    final content = rawContent.length > 1000
+        ? rawContent.substring(0, 1000)
+        : rawContent;
     final locale = Localizations.localeOf(_contextProvider).toLanguageTag();
 
     String prompt = settings.titlePrompt
@@ -735,12 +739,21 @@ class HomeViewModel extends ChangeNotifier {
         .replaceAll('{content}', content);
 
     try {
-      final title = (await ChatApiService.generateText(
+      final raw = (await ChatApiService.generateText(
         config: cfg,
         modelId: mdlId,
         prompt: prompt,
         thinkingBudget: budget,
       )).trim();
+      // Strip any <think>/<thought> blocks the model may have inline-output
+      // despite thinking being disabled (belt-and-suspenders guard).
+      final title = raw
+          .replaceAll(
+            RegExp(r'<(?:think|thought)>[\s\S]*?<\/(?:think|thought)>'),
+            '',
+          )
+          .replaceAll(RegExp(r'<(?:think|thought)>[\s\S]*'), '')
+          .trim();
       if (title.isNotEmpty) {
         await _chatService.renameConversation(convo.id, title);
         if (currentConversation?.id == convo.id) {

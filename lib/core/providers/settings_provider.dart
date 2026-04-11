@@ -2247,17 +2247,13 @@ class SettingsProvider extends ChangeNotifier {
       : null;
 
   static const String defaultTitlePrompt =
-      '''I will give you some dialogue content in the `<content>` block.
-You need to summarize the conversation between user and assistant into a short title.
-1. The title language should be consistent with the user's primary language
-2. Do not use punctuation or other special symbols
-3. Reply directly with the title
-4. Summarize using {locale} language
-5. The title should not exceed 10 characters
+      """Generate a short title for this conversation based on the user's message below.
+1. Use {locale} language
+2. Plain text only, no markdown, no punctuation, no special symbols
+3. No more than 10 words
+4. Output the title only, nothing else
 
-<content>
-{content}
-</content>''';
+{content}""";
 
   String _titlePrompt = defaultTitlePrompt;
   String get titlePrompt => _titlePrompt;
