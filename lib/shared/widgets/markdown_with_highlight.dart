@@ -2445,7 +2445,6 @@ class ModernBlockQuote extends InlineMd {
         margin: const EdgeInsets.symmetric(vertical: 6),
         decoration: BoxDecoration(
           color: bg,
-          borderRadius: BorderRadius.circular(12),
           border: Border(left: BorderSide(color: accent, width: 3)),
         ),
         child: Padding(
