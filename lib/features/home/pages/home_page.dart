@@ -458,11 +458,10 @@ class _HomePageState extends State<HomePage>
       onOpenGlobalSearchResult: (convId, msgId) => _controller
           .openGlobalSearchResult(conversationId: convId, messageId: msgId),
       onSelectAssistant: () async {
-        final ap = context.read<AssistantProvider>();
         final selectedId = await showAssistantSwitchSheet(context);
         if (!mounted) return;
         if (selectedId != null) {
-          await ap.setCurrentAssistant(selectedId);
+          await _controller.switchToAssistant(selectedId);
         }
       },
       onSidebarWidthChanged: _controller.updateSidebarWidth,

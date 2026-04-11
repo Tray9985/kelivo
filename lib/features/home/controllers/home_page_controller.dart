@@ -668,6 +668,21 @@ class HomePageController extends ChangeNotifier {
     }
   }
 
+  /// Switches the current assistant and jumps to its most recent conversation.
+  /// Creates a new conversation if the assistant has none.
+  Future<void> switchToAssistant(String assistantId) async {
+    final ap = _context.read<AssistantProvider>();
+    if (ap.currentAssistantId == assistantId) return;
+    await ap.setCurrentAssistant(assistantId);
+    final conversations = _chatService.getAllConversations();
+    final idx = conversations.indexWhere((c) => c.assistantId == assistantId);
+    if (idx != -1) {
+      await switchConversationAnimated(conversations[idx].id);
+    } else {
+      await createNewConversationAnimated();
+    }
+  }
+
   Future<void> createNewConversationAnimated() async {
     try {
       await _viewModel.flushCurrentConversationProgress();
