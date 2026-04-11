@@ -14,6 +14,7 @@ import '../../../core/providers/mcp_provider.dart';
 import '../../../core/providers/tts_provider.dart';
 import '../../../core/providers/quick_phrase_provider.dart';
 import '../../../core/providers/instruction_injection_provider.dart';
+import '../../../core/providers/memory_provider.dart';
 import '../../../core/services/chat/chat_service.dart';
 import '../../../core/services/haptics.dart';
 import '../../../l10n/app_localizations.dart';
@@ -233,6 +234,8 @@ class HomePageController extends ChangeNotifier {
     return loadingConversationIds.contains(cid);
   }
 
+  QueuedChatInput? get currentQueuedInput => _viewModel.currentQueuedInput;
+
   ValueNotifier<bool> get isProcessingFiles => _viewModel.isProcessingFiles;
 
   @override
@@ -417,6 +420,14 @@ class HomePageController extends ChangeNotifier {
       });
     } catch (_) {}
     try {
+      final memoryProvider = _context.read<MemoryProvider>();
+      Future.microtask(() async {
+        try {
+          await memoryProvider.initialize();
+        } catch (_) {}
+      });
+    } catch (_) {}
+    try {
       _mcpProvider = _context.read<McpProvider>();
       _mcpProvider!.addListener(_onMcpChanged);
     } catch (_) {}
@@ -550,21 +561,39 @@ class HomePageController extends ChangeNotifier {
   // Public Methods - Message Actions
   // ============================================================================
 
-  Future<void> sendMessage(ChatInputData input) async {
+  Future<ChatInputSubmissionResult> sendMessage(ChatInputData input) async {
     final content = input.text.trim();
     if (content.isEmpty &&
         input.imagePaths.isEmpty &&
         input.documents.isEmpty) {
-      return;
+      return ChatInputSubmissionResult.rejected;
     }
     if (currentConversation == null) {
       await _createNewConversation();
     }
 
-    final success = await _viewModel.sendMessage(input);
-    if (success) {
+    final result = await _viewModel.sendMessage(input);
+    if (result != ChatInputSubmissionResult.rejected) {
       notifyListeners();
     }
+    return result;
+  }
+
+  void cancelQueuedMessage() {
+    final restored = _viewModel.cancelCurrentQueuedInput();
+    if (restored == null) return;
+
+    _inputController.value = TextEditingValue(
+      text: restored.text,
+      selection: TextSelection.collapsed(offset: restored.text.length),
+      composing: TextRange.empty,
+    );
+    _mediaController.restoreInput(restored);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_context.mounted) return;
+      _inputFocus.requestFocus();
+    });
+    notifyListeners();
   }
 
   Future<void> regenerateAtMessage(

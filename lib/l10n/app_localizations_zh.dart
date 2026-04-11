@@ -1970,6 +1970,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chatInputBarMoreTooltip => '更多';
 
   @override
+  String get chatInputBarQueuedPending => '排队中';
+
+  @override
+  String get chatInputBarQueuedCancel => '取消排队';
+
+  @override
   String get chatInputBarInsertNewline => '换行';
 
   @override
@@ -6253,6 +6259,12 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get chatInputBarMoreTooltip => '更多';
 
   @override
+  String get chatInputBarQueuedPending => '排队中';
+
+  @override
+  String get chatInputBarQueuedCancel => '取消排队';
+
+  @override
   String get chatInputBarInsertNewline => '换行';
 
   @override
@@ -10481,6 +10493,12 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get chatInputBarMoreTooltip => '更多';
+
+  @override
+  String get chatInputBarQueuedPending => '排隊中';
+
+  @override
+  String get chatInputBarQueuedCancel => '取消排隊';
 
   @override
   String get chatInputBarInsertNewline => '換行';
