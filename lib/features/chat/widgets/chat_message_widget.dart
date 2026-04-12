@@ -27,6 +27,7 @@ import '../../../utils/assistant_regex.dart';
 import '../../../core/models/assistant.dart';
 import '../../../core/providers/tts_provider.dart';
 import '../../../shared/widgets/markdown_with_highlight.dart';
+import '../../../shared/pages/webview_page.dart';
 import '../../../shared/widgets/snackbar.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../l10n/app_localizations.dart';
@@ -2088,6 +2089,15 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
           type: NotificationType.warning,
         );
       }
+      return;
+    }
+    final isMobile = defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.android;
+    if (isMobile) {
+      if (!mounted) return;
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => WebViewPage(url: url)),
+      );
       return;
     }
     try {
