@@ -19,6 +19,13 @@ class DesktopWindowController with WindowListener {
   Timer? _resizeDebounce;
   static const _debounceDuration = Duration(milliseconds: 400);
 
+  /// Whether the window is currently blurred (not focused).
+  ///
+  /// Used to distinguish a focus-lost 'hidden' lifecycle event (window still
+  /// visible on screen) from a true 'hidden' event (window minimized/hidden).
+  bool _isWindowBlurred = false;
+  bool get isWindowBlurred => _isWindowBlurred;
+
   Future<void> initializeAndShow({String? title}) async {
     if (kIsWeb) return;
     if (!(defaultTargetPlatform == TargetPlatform.windows ||
@@ -57,8 +64,9 @@ class DesktopWindowController with WindowListener {
     // Validate saved position against current screen bounds to prevent
     // the window from restoring off-screen (e.g. after an RDP session
     // changes the display layout). See issue #432.
-    final validatedPos =
-        savedPos != null ? await _validatePosition(savedPos, initialSize) : null;
+    final validatedPos = savedPos != null
+        ? await _validatePosition(savedPos, initialSize)
+        : null;
 
     await windowManager.waitUntilReadyToShow(options, () async {
       // Show first, then restore position to avoid macOS jump/flicker.
@@ -103,8 +111,8 @@ class DesktopWindowController with WindowListener {
       final winBottom = winTop + windowSize.height;
 
       for (final display in displays) {
-        final visibleRect = display.visiblePosition != null &&
-                display.visibleSize != null
+        final visibleRect =
+            display.visiblePosition != null && display.visibleSize != null
             ? Rect.fromLTWH(
                 display.visiblePosition!.dx,
                 display.visiblePosition!.dy,
@@ -119,14 +127,16 @@ class DesktopWindowController with WindowListener {
               );
 
         // Compute overlap between window rect and display rect.
-        final overlapLeft =
-            winLeft > visibleRect.left ? winLeft : visibleRect.left;
-        final overlapTop =
-            winTop > visibleRect.top ? winTop : visibleRect.top;
-        final overlapRight =
-            winRight < visibleRect.right ? winRight : visibleRect.right;
-        final overlapBottom =
-            winBottom < visibleRect.bottom ? winBottom : visibleRect.bottom;
+        final overlapLeft = winLeft > visibleRect.left
+            ? winLeft
+            : visibleRect.left;
+        final overlapTop = winTop > visibleRect.top ? winTop : visibleRect.top;
+        final overlapRight = winRight < visibleRect.right
+            ? winRight
+            : visibleRect.right;
+        final overlapBottom = winBottom < visibleRect.bottom
+            ? winBottom
+            : visibleRect.bottom;
 
         final overlapW = overlapRight - overlapLeft;
         final overlapH = overlapBottom - overlapTop;
@@ -149,6 +159,16 @@ class DesktopWindowController with WindowListener {
     if (_attached) return;
     windowManager.addListener(this);
     _attached = true;
+  }
+
+  @override
+  void onWindowFocus() {
+    _isWindowBlurred = false;
+  }
+
+  @override
+  void onWindowBlur() {
+    _isWindowBlurred = true;
   }
 
   @override

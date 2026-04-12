@@ -228,13 +228,25 @@ class MessageListView extends StatelessWidget {
               child: list,
             );
 
-            return Stack(
-              children: [
-                observedList,
-                if (isPinnedIndicatorActive &&
-                    buildPinnedStreamingIndicator != null)
-                  buildPinnedStreamingIndicator!(),
-              ],
+            // Wrap the entire list in a single SelectionArea so that
+            // drag-to-select near the viewport edge triggers ListView
+            // auto-scroll via Flutter's _ScrollableSelectionContainerDelegate.
+            // Per-message SelectionArea wrappers in ChatMessageWidget have
+            // been removed; this single ancestor takes their place.
+            // contextMenuBuilder is suppressed here so the floating "Copy"
+            // toolbar does not compete with per-message right-click menus;
+            // Cmd+C / Ctrl+C keyboard shortcut still works for selected text.
+            return SelectionArea(
+              contextMenuBuilder: (context, selectableRegionState) =>
+                  const SizedBox.shrink(),
+              child: Stack(
+                children: [
+                  observedList,
+                  if (isPinnedIndicatorActive &&
+                      buildPinnedStreamingIndicator != null)
+                    buildPinnedStreamingIndicator!(),
+                ],
+              ),
             );
           },
         );
@@ -530,7 +542,9 @@ class MessageListView extends StatelessWidget {
           ? (r?.expanded ?? false)
           : false,
       reasoningLoading: (message.role == 'assistant')
-          ? (message.isStreaming && r?.finishedAt == null && (r?.text.isNotEmpty == true))
+          ? (message.isStreaming &&
+                r?.finishedAt == null &&
+                (r?.text.isNotEmpty == true))
           : false,
       reasoningStartAt: (message.role == 'assistant') ? r?.startAt : null,
       reasoningFinishedAt: (message.role == 'assistant') ? r?.finishedAt : null,

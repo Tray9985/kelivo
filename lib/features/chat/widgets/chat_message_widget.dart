@@ -797,13 +797,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                             );
                           }
 
-                          // Enable desktop selection/copy for user messages
-                          return isDesktop
-                              ? SelectionArea(
-                                  key: ValueKey('user_${widget.message.id}'),
-                                  child: content,
-                                )
-                              : content;
+                          return content;
                         },
                       ),
                     if (parsed.images.isNotEmpty) ...[
@@ -1607,15 +1601,12 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                               child: assistantContent,
                             );
                             return RepaintBoundary(
-                              child: SelectionArea(
-                                key: ValueKey('assistant_${widget.message.id}'),
-                                child: DefaultTextStyle.merge(
-                                  style: TextStyle(
-                                    fontSize: baseAssistant,
-                                    height: 1.5,
-                                  ),
-                                  child: assistantContent,
+                              child: DefaultTextStyle.merge(
+                                style: TextStyle(
+                                  fontSize: baseAssistant,
+                                  height: 1.5,
                                 ),
+                                child: assistantContent,
                               ),
                             );
                           },
@@ -1743,57 +1734,51 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                                           6,
                                         ),
                                         child: RepaintBoundary(
-                                          child: SelectionArea(
-                                            key: ValueKey(
-                                              'translation_${widget.message.id}',
-                                            ),
-                                            child: Builder(
-                                              builder: (context) {
-                                                final bool isDesktop =
-                                                    defaultTargetPlatform ==
-                                                        TargetPlatform.macOS ||
-                                                    defaultTargetPlatform ==
-                                                        TargetPlatform
-                                                            .windows ||
-                                                    defaultTargetPlatform ==
-                                                        TargetPlatform.linux;
-                                                final double baseTranslation =
-                                                    isDesktop ? 14.0 : 15.5;
-                                                Widget translationContent;
-                                                if (settings
-                                                    .enableAssistantMarkdown) {
-                                                  translationContent =
-                                                      MarkdownWithCodeHighlight(
-                                                        text: translationText,
-                                                        onCitationTap: (id) =>
-                                                            _handleCitationTap(
-                                                              id,
-                                                            ),
-                                                        baseStyle: TextStyle(
-                                                          fontSize:
-                                                              baseTranslation,
-                                                          height: 1.4,
-                                                        ),
-                                                      );
-                                                } else {
-                                                  translationContent = Text(
-                                                    translationText,
-                                                    style: TextStyle(
-                                                      fontSize: baseTranslation,
-                                                      height: 1.4,
-                                                      color: cs.onSurface,
-                                                    ),
-                                                  );
-                                                }
-                                                return DefaultTextStyle.merge(
+                                          child: Builder(
+                                            builder: (context) {
+                                              final bool isDesktop =
+                                                  defaultTargetPlatform ==
+                                                      TargetPlatform.macOS ||
+                                                  defaultTargetPlatform ==
+                                                      TargetPlatform.windows ||
+                                                  defaultTargetPlatform ==
+                                                      TargetPlatform.linux;
+                                              final double baseTranslation =
+                                                  isDesktop ? 14.0 : 15.5;
+                                              Widget translationContent;
+                                              if (settings
+                                                  .enableAssistantMarkdown) {
+                                                translationContent =
+                                                    MarkdownWithCodeHighlight(
+                                                      text: translationText,
+                                                      onCitationTap: (id) =>
+                                                          _handleCitationTap(
+                                                            id,
+                                                          ),
+                                                      baseStyle: TextStyle(
+                                                        fontSize:
+                                                            baseTranslation,
+                                                        height: 1.4,
+                                                      ),
+                                                    );
+                                              } else {
+                                                translationContent = Text(
+                                                  translationText,
                                                   style: TextStyle(
                                                     fontSize: baseTranslation,
                                                     height: 1.4,
+                                                    color: cs.onSurface,
                                                   ),
-                                                  child: translationContent,
                                                 );
-                                              },
-                                            ),
+                                              }
+                                              return DefaultTextStyle.merge(
+                                                style: TextStyle(
+                                                  fontSize: baseTranslation,
+                                                  height: 1.4,
+                                                ),
+                                                child: translationContent,
+                                              );
+                                            },
                                           ),
                                         ),
                                       ),
@@ -4006,8 +3991,8 @@ class _ReasoningSectionState extends State<_ReasoningSection>
       );
     }
 
-    // Enable long-press text selection in reasoning body
-    body = SelectionArea(child: body);
+    // Text selection is handled by the ancestor SelectionArea wrapping the
+    // entire MessageListView; no per-widget wrapper needed here.
 
     return AnimatedSize(
       duration: const Duration(milliseconds: 300),

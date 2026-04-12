@@ -21,6 +21,7 @@ import '../../../core/models/chat_message.dart';
 import '../../../core/services/android_process_text.dart';
 import '../../../utils/sandbox_path_resolver.dart';
 import '../../../utils/platform_utils.dart';
+import '../../../desktop/desktop_window_controller.dart';
 import '../../../desktop/search_provider_popover.dart';
 import '../../../desktop/reasoning_budget_popover.dart';
 import '../../../desktop/mcp_servers_popover.dart';
@@ -136,6 +137,27 @@ class _HomePageState extends State<HomePage>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    // On macOS, switching to another app fires:
+    //   inactive → onWindowBlur → hidden
+    // Flutter's SchedulerBinding treats 'hidden' as fully backgrounded and
+    // sets framesEnabled = false, stopping all rendering even though the
+    // window is still visible on screen.
+    //
+    // When the window is merely blurred (not minimized/hidden by the user),
+    // we re-enable frame scheduling after the observer loop completes so
+    // that streaming output and animations continue rendering while the
+    // window is not focused.
+    if (state == AppLifecycleState.hidden &&
+        PlatformUtils.isDesktopTarget &&
+        DesktopWindowController.instance.isWindowBlurred) {
+      Future.microtask(() {
+        WidgetsBinding.instance.handleAppLifecycleStateChanged(
+          AppLifecycleState.inactive,
+        );
+      });
+      _controller.onAppLifecycleStateChanged(AppLifecycleState.inactive);
+      return;
+    }
     _controller.onAppLifecycleStateChanged(state);
   }
 

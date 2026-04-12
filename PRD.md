@@ -83,3 +83,38 @@
 - 已移除：助手面板切换快捷键（助手切换已移至 Topbar 胶囊）
 
 ---
+
+## 11. OpenRouter 模型元数据自动同步
+
+- 通过 OpenRouter 公开 API 自动获取模型元数据，写入 `modelOverrides`
+- 同步字段：`orContextLength`（上下文长度）、`abilities`（`tools`、`reasoning`）、`inputModalities`（`image` 等）
+- 支持单模型手动拉取（模型选择弹窗）和批量拉取（供应商详情页）
+- 已有的手动覆盖配置不被自动同步覆盖，采用合并策略（`toFullOverrideMap`）
+- OpenRouter 模型选择弹窗显示上下文长度（K/M 格式）和能力胶囊（工具调用、推理）
+
+---
+
+## 12. 发送前自动 Token 裁剪
+
+- 发送消息前根据模型的 `orContextLength` 自动裁剪历史消息
+- 裁剪分两阶段：Phase 1 按条数限制，Phase 2 按 token 预算裁剪（预留 2048 token 给补全）
+- Token 估算公式：`⌈chars / 4⌉ + 4`，保守估算，不依赖外部 tokenizer
+- 无 `orContextLength` 时跳过 Phase 2，行为与原来一致
+
+---
+
+## 13. 桌面端聊天消息选中文字可拖拽滚动
+
+- 在聊天消息列表中拖拽选中文字时，靠近列表上下边缘会自动触发滚动
+- 修复原因：原有 `SelectionArea` 分散在各消息子项内部，Flutter 的自动滚动机制无法跨越边界生效
+- 实现：将单个 `SelectionArea` 提升至整个消息列表（`MessageListView`）的外层，移除原有的 4 处消息级 `SelectionArea`
+- 消息级右键菜单（翻译、复制、编辑等）不受影响；Cmd+C 文本复制快捷键仍有效
+
+---
+
+## 14. 桌面端失焦时 streaming 持续渲染
+
+- 修复：在 macOS 上切换到其他应用后，LLM 输出刷新和 loading 动画停止的问题
+- 根因：macOS 切换应用时，Flutter 发出 `inactive → hidden` 生命周期序列，`hidden` 导致 `SchedulerBinding.framesEnabled = false`，所有帧调度（包括 `ValueNotifier` 刷新和 `AnimationController`）冻结
+- 修复方式：在 `_HomePageState.didChangeAppLifecycleState` 中，当检测到 `hidden` + 桌面平台 + 窗口仅失焦（非最小化/隐藏）时，通过 `Future.microtask` 重新调用 `handleAppLifecycleStateChanged(inactive)`，将帧调度恢复为启用状态
+- `DesktopWindowController` 新增 `isWindowBlurred` 追踪，用于区分"失焦但可见"与"真正隐藏"
