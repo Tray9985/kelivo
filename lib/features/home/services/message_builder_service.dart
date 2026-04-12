@@ -855,11 +855,18 @@ class MessageBuilderService {
     }
   }
 
-  /// Apply context message limit based on assistant settings.
+  /// Apply context message limit based on assistant settings and token budget.
+  ///
+  /// Phase 1: trim to [assistant.contextMessageSize] messages (count-based).
+  /// Phase 2: if [contextTokenLimit] is provided, further trim oldest non-system
+  /// messages until the rough token estimate fits within the budget.
+  /// Tool-call triplet integrity is preserved in both phases.
   void applyContextLimit(
     List<Map<String, dynamic>> apiMessages,
-    Assistant? assistant,
-  ) {
+    Assistant? assistant, {
+    int? contextTokenLimit,
+  }) {
+    // Phase 1: message-count trimming.
     if ((assistant?.limitContextMessages ?? true) &&
         (assistant?.contextMessageSize ?? 0) > 0) {
       final int keep = (assistant!.contextMessageSize).clamp(
@@ -883,6 +890,64 @@ class MessageBuilderService {
         apiMessages.removeAt(startIdx);
       }
     }
+
+    // Phase 2: token-budget trimming using orContextLength.
+    // Reserve 2048 tokens for completion output; trim oldest non-system
+    // messages until the rough estimate fits.
+    if (contextTokenLimit != null && contextTokenLimit > 0) {
+      const int outputReserve = 2048;
+      final int inputBudget = (contextTokenLimit - outputReserve).clamp(
+        512,
+        contextTokenLimit,
+      );
+      int startIdx = 0;
+      if (apiMessages.isNotEmpty && apiMessages.first['role'] == 'system') {
+        startIdx = 1;
+      }
+      while (apiMessages.length > startIdx) {
+        int total = 0;
+        for (final m in apiMessages) {
+          total += _estimateMessageTokens(m);
+        }
+        if (total <= inputBudget) break;
+        apiMessages.removeAt(startIdx);
+        // Remove dangling tool messages at the new head.
+        while (apiMessages.length > startIdx &&
+            (apiMessages[startIdx]['role'] ?? '').toString() == 'tool') {
+          apiMessages.removeAt(startIdx);
+        }
+      }
+    }
+  }
+
+  /// Rough token estimate for a single API message (~4 chars per token).
+  ///
+  /// Acceptable accuracy for safety trimming; no BPE tokenizer is available
+  /// client-side. The +4 accounts for role/structure overhead per message.
+  static int _estimateMessageTokens(Map<String, dynamic> msg) {
+    final content = msg['content'];
+    final int chars;
+    if (content is String) {
+      chars = content.length;
+    } else if (content is List) {
+      int total = 0;
+      for (final part in content) {
+        if (part is Map) {
+          final type = part['type'];
+          if (type == 'text') {
+            total += (part['text'] as String? ?? '').length;
+          } else {
+            total += part.toString().length;
+          }
+        } else {
+          total += part.toString().length;
+        }
+      }
+      chars = total;
+    } else {
+      chars = content?.toString().length ?? 0;
+    }
+    return (chars / 4).ceil() + 4;
   }
 
   /// Convert local Markdown image links to inline base64 for model context.
