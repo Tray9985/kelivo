@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import '../../../l10n/app_localizations.dart';
+import '../utils/model_display_helper.dart';
 import '../widgets/side_drawer.dart';
 import '../../../icons/lucide_adapter.dart';
 import '../../../core/providers/user_provider.dart';
@@ -17,7 +18,6 @@ import '../../../shared/animations/widgets.dart';
 import '../../../shared/widgets/ios_tactile.dart';
 import '../../../utils/sandbox_path_resolver.dart';
 import '../../../desktop/hotkeys/chat_action_bus.dart';
-import '../widgets/assistant_avatar.dart';
 
 /// Desktop/Tablet layout scaffold for the home page
 /// Handles the overall structure: left sidebar, main content, optional right sidebar
@@ -306,62 +306,50 @@ class HomeDesktopScaffold extends StatelessWidget {
 
   Widget _buildTitle(BuildContext context, ColorScheme cs) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final sp = context.watch<SettingsProvider>();
     final currentAssistant = context
         .watch<AssistantProvider>()
         .currentAssistant;
-    final assistantName = _getAssistantName(context);
-    final showAvatar = context
-        .watch<SettingsProvider>()
-        .useNewAssistantAvatarUx;
+    final modelInfo = getModelDisplayInfo(sp, assistant: currentAssistant);
+    final providerName = modelInfo.providerName;
+    final modelDisplay = modelInfo.modelDisplay;
+    final modelLabel = (providerName != null && modelDisplay != null)
+        ? '$providerName/$modelDisplay'
+        : modelDisplay;
 
-    final assistantCapsule = IosCardPress(
-      borderRadius: BorderRadius.circular(20),
-      baseColor: Colors.transparent,
-      pressedBlendStrength: isDark ? 0.18 : 0.12,
-      padding: EdgeInsets.zero,
-      onTap: onSelectAssistant,
-      child: AnimatedSize(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOutCubic,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(14)),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (showAvatar) ...[
-                AssistantAvatar(
-                  assistant: currentAssistant,
-                  fallbackName: assistantName,
-                  size: 16,
-                ),
-                const SizedBox(width: 6),
-              ],
-              Flexible(
-                child: AnimatedTextSwap(
-                  text: assistantName,
-                  style: TextStyle(
-                    fontSize: 12,
-                    height: 1.1,
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.92)
-                        : cs.onSurface.withValues(alpha: 0.9),
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+    // Model name capsule (static, not clickable)
+    final modelCapsule = modelLabel != null
+        ? Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.15)
+                    : cs.onSurface.withValues(alpha: 0.12),
+                width: 0.5,
               ),
-            ],
-          ),
-        ),
-      ),
-    );
+            ),
+            child: Text(
+              modelLabel,
+              style: TextStyle(
+                fontSize: 11,
+                height: 1.2,
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.45)
+                    : cs.onSurface.withValues(alpha: 0.4),
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          )
+        : null;
 
     final row = Row(
-      mainAxisSize: MainAxisSize.max,
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        // 1. Conversation title (flex, truncates if needed)
         Flexible(
           fit: FlexFit.loose,
           child: AnimatedSize(
@@ -375,31 +363,18 @@ class HomeDesktopScaffold extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: 8),
-        Flexible(
-          fit: FlexFit.loose,
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 220),
-              transitionBuilder: (child, anim) => FadeTransition(
-                opacity: anim,
-                child: SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0.06, 0),
-                    end: Offset.zero,
-                  ).animate(anim),
-                  child: child,
-                ),
-              ),
-              child: KeyedSubtree(
-                key: ValueKey('cap:$assistantName'),
-                child: assistantCapsule,
-              ),
+        // 2. Model name capsule
+        if (modelCapsule != null) ...[
+          const SizedBox(width: 6),
+          Flexible(
+            fit: FlexFit.loose,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: modelCapsule,
             ),
           ),
-        ),
+        ],
       ],
     );
 
@@ -418,7 +393,7 @@ class HomeDesktopScaffold extends StatelessWidget {
           ),
         ),
         child: KeyedSubtree(
-          key: ValueKey('hdr:$title|$assistantName'),
+          key: ValueKey('hdr:$title|${modelLabel ?? ""}'),
           child: row,
         ),
       ),
@@ -427,6 +402,14 @@ class HomeDesktopScaffold extends StatelessWidget {
 
   List<Widget> _buildActions(BuildContext context, bool topicsOnRight) {
     return [
+      // Assistant picker button
+      IosIconButton(
+        size: 20,
+        padding: const EdgeInsets.all(8),
+        minSize: 40,
+        icon: Lucide.Bot,
+        onTap: onSelectAssistant,
+      ),
       // Right sidebar toggle (desktop + topics on right)
       if (_isDesktop && topicsOnRight)
         IosIconButton(

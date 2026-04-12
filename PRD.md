@@ -81,3 +81,5 @@
 - `Cmd+N`（Win/Linux：`Ctrl+N`）：新建话题
 - `Cmd+,`（Win/Linux：`Ctrl+,`）：打开设置
 - 已移除：助手面板切换快捷键（助手切换已移至 Topbar 胶囊）
+
+---
