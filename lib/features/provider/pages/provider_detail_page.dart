@@ -30,6 +30,8 @@ import 'provider_network_page.dart';
 import '../../../core/services/haptics.dart';
 import '../../provider/widgets/provider_avatar.dart';
 import '../../../utils/model_grouping.dart';
+import '../../../core/utils/openrouter_model_matcher.dart';
+import '../../../shared/dialogs/openrouter_model_picker_dialog.dart';
 
 class ProviderDetailPage extends StatefulWidget {
   const ProviderDetailPage({
@@ -2404,6 +2406,7 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
     List<dynamic> items = const [];
     bool loading = true;
     String error = '';
+    Map<String, OpenRouterModelMeta> catalog = const {};
     // Collapsed state per group in the selector dialog
     final Map<String, bool> collapsed = <String, bool>{};
 
@@ -2420,32 +2423,31 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
             final l10n = AppLocalizations.of(ctx)!;
             Future<void> loadModels() async {
               try {
-                if (restrictToFree) {
-                  final list = <ModelInfo>[
-                    ModelRegistry.infer(
-                      ModelInfo(
-                        id: 'THUDM/GLM-4-9B-0414',
-                        displayName: 'THUDM/GLM-4-9B-0414',
-                      ),
-                    ),
-                    ModelRegistry.infer(
-                      ModelInfo(
-                        id: 'Qwen/Qwen3-8B',
-                        displayName: 'Qwen/Qwen3-8B',
-                      ),
-                    ),
-                  ];
-                  setLocal(() {
-                    items = list;
-                    loading = false;
-                  });
-                } else {
-                  final list = await ProviderManager.listModels(cfg);
-                  setLocal(() {
-                    items = list;
-                    loading = false;
-                  });
-                }
+                final modelsFuture = restrictToFree
+                    ? Future<List<ModelInfo>>.value([
+                        ModelRegistry.infer(
+                          ModelInfo(
+                            id: 'THUDM/GLM-4-9B-0414',
+                            displayName: 'THUDM/GLM-4-9B-0414',
+                          ),
+                        ),
+                        ModelRegistry.infer(
+                          ModelInfo(
+                            id: 'Qwen/Qwen3-8B',
+                            displayName: 'Qwen/Qwen3-8B',
+                          ),
+                        ),
+                      ])
+                    : ProviderManager.listModels(cfg);
+                final results = await Future.wait<dynamic>([
+                  modelsFuture,
+                  ProviderManager.fetchOpenRouterCatalog(),
+                ]);
+                setLocal(() {
+                  items = results[0] as List<ModelInfo>;
+                  catalog = results[1] as Map<String, OpenRouterModelMeta>;
+                  loading = false;
+                });
               } catch (e) {
                 setLocal(() {
                   items = const [];
@@ -2453,6 +2455,86 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
                   error = '$e';
                 });
               }
+            }
+
+            Future<void> writeMetaBatch(List<String> newlyAddedIds) async {
+              if (catalog.isEmpty || newlyAddedIds.isEmpty) return;
+              final old = settings.getProviderConfig(
+                widget.keyName,
+                defaultName: widget.displayName,
+              );
+              final overrides = Map<String, dynamic>.from(old.modelOverrides);
+              bool changed = false;
+              for (final modelId in newlyAddedIds) {
+                final result = OpenRouterModelMatcher.match(modelId, catalog);
+                if (result is! OpenRouterMatchExact) continue;
+                if (!result.meta.hasData) continue;
+                final existing = Map<String, dynamic>.from(
+                  (overrides[modelId] as Map?) ?? const {},
+                );
+                existing.addAll(result.meta.toFullOverrideMap(existing));
+                overrides[modelId] = existing;
+                changed = true;
+              }
+              if (changed) {
+                await settings.setProviderConfig(
+                  widget.keyName,
+                  old.copyWith(modelOverrides: overrides),
+                );
+              }
+            }
+
+            Future<void> resolveAndWriteMetaForModel(
+              BuildContext dialogCtx,
+              String modelId,
+            ) async {
+              if (catalog.isEmpty) return;
+              final result = OpenRouterModelMatcher.match(modelId, catalog);
+              String? catalogId;
+              if (result is OpenRouterMatchExact) {
+                if (!result.meta.hasData) return;
+                final old = settings.getProviderConfig(
+                  widget.keyName,
+                  defaultName: widget.displayName,
+                );
+                final overrides = Map<String, dynamic>.from(old.modelOverrides);
+                final existing = Map<String, dynamic>.from(
+                  (overrides[modelId] as Map?) ?? const {},
+                );
+                existing.addAll(result.meta.toFullOverrideMap(existing));
+                overrides[modelId] = existing;
+                await settings.setProviderConfig(
+                  widget.keyName,
+                  old.copyWith(modelOverrides: overrides),
+                );
+                return;
+              }
+              final candidates = result is OpenRouterMatchAmbiguous
+                  ? result.candidateIds
+                  : null;
+              if (!dialogCtx.mounted) return;
+              catalogId = await showOrModelPickerDialog(
+                dialogCtx,
+                catalog: catalog,
+                candidates: candidates,
+              );
+              if (catalogId == null) return;
+              final meta = catalog[catalogId];
+              if (meta == null || !meta.hasData) return;
+              final old = settings.getProviderConfig(
+                widget.keyName,
+                defaultName: widget.displayName,
+              );
+              final overrides = Map<String, dynamic>.from(old.modelOverrides);
+              final existing = Map<String, dynamic>.from(
+                (overrides[modelId] as Map?) ?? const {},
+              );
+              existing.addAll(meta.toFullOverrideMap(existing));
+              overrides[modelId] = existing;
+              await settings.setProviderConfig(
+                widget.keyName,
+                old.copyWith(modelOverrides: overrides),
+              );
             }
 
             if (loading) {
@@ -2594,6 +2676,13 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
                                             } else {
                                               // Select all filtered
                                               final setIds = old.models.toSet();
+                                              final newlyAdded = filtered
+                                                  .where(
+                                                    (m) =>
+                                                        !setIds.contains(m.id),
+                                                  )
+                                                  .map((m) => m.id)
+                                                  .toList();
                                               setIds.addAll(
                                                 filtered.map((m) => m.id),
                                               );
@@ -2603,6 +2692,7 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
                                                   models: setIds.toList(),
                                                 ),
                                               );
+                                              await writeMetaBatch(newlyAdded);
                                             }
                                             setLocal(() {});
                                           },
@@ -2645,11 +2735,13 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
                                         ];
                                         if (filteredNow.isEmpty) return;
                                         final current = old.models.toSet();
+                                        final toAdd = <String>[];
                                         for (final m in filteredNow) {
                                           if (current.contains(m.id)) {
                                             current.remove(m.id);
                                           } else {
                                             current.add(m.id);
+                                            toAdd.add(m.id);
                                           }
                                         }
                                         await settings.setProviderConfig(
@@ -2658,6 +2750,7 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
                                             models: current.toList(),
                                           ),
                                         );
+                                        await writeMetaBatch(toAdd);
                                         setLocal(() {});
                                       },
                                     ),
@@ -2888,6 +2981,9 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
                                                                           .toList(),
                                                                     ),
                                                                   );
+                                                              await writeMetaBatch(
+                                                                toAdd,
+                                                              );
                                                             }
                                                             setLocal(() {});
                                                           },
@@ -3026,6 +3122,13 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
                                                                               models: list,
                                                                             ),
                                                                           );
+                                                                          if (!added &&
+                                                                              ctx.mounted) {
+                                                                            await resolveAndWriteMetaForModel(
+                                                                              ctx,
+                                                                              m.id,
+                                                                            );
+                                                                          }
                                                                           setLocal(
                                                                             () {},
                                                                           );

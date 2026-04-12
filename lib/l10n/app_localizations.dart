@@ -8293,6 +8293,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} tokens'**
   String tokenDetailTotalTokens(int count);
+
+  /// No description provided for @orModelPickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select OpenRouter Model'**
+  String get orModelPickerTitle;
+
+  /// No description provided for @orModelPickerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not automatically match this model. Select the corresponding OpenRouter entry to fetch context metadata.'**
+  String get orModelPickerSubtitle;
+
+  /// No description provided for @orModelPickerSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search models'**
+  String get orModelPickerSearchHint;
+
+  /// No description provided for @orModelPickerSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get orModelPickerSkip;
+
+  /// No description provided for @orModelPickerNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching models'**
+  String get orModelPickerNoResults;
 }
 
 class _AppLocalizationsDelegate

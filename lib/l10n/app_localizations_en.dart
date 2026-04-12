@@ -4450,4 +4450,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String tokenDetailTotalTokens(int count) {
     return '$count tokens';
   }
+
+  @override
+  String get orModelPickerTitle => 'Select OpenRouter Model';
+
+  @override
+  String get orModelPickerSubtitle =>
+      'Could not automatically match this model. Select the corresponding OpenRouter entry to fetch context metadata.';
+
+  @override
+  String get orModelPickerSearchHint => 'Search models';
+
+  @override
+  String get orModelPickerSkip => 'Skip';
+
+  @override
+  String get orModelPickerNoResults => 'No matching models';
 }

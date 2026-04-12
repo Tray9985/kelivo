@@ -1479,5 +1479,10 @@
   "tokenDetailCompletionTokens": "{count} tokens",
   "tokenDetailSpeed": "{value} tok/s",
   "tokenDetailDuration": "{value}s",
-  "tokenDetailTotalTokens": "{count} tokens"
+  "tokenDetailTotalTokens": "{count} tokens",
+  "orModelPickerTitle": "选择 OpenRouter 模型",
+  "orModelPickerSubtitle": "未能自动匹配此模型，请手动选择对应的 OpenRouter 条目以获取上下文元数据。",
+  "orModelPickerSearchHint": "搜索模型",
+  "orModelPickerSkip": "跳过",
+  "orModelPickerNoResults": "无匹配模型"
 }

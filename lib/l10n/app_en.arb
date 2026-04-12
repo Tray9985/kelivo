@@ -1873,5 +1873,15 @@
     "placeholders": {
       "count": {"type": "int"}
     }
-  }
+  },
+  "orModelPickerTitle": "Select OpenRouter Model",
+  "@orModelPickerTitle": {},
+  "orModelPickerSubtitle": "Could not automatically match this model. Select the corresponding OpenRouter entry to fetch context metadata.",
+  "@orModelPickerSubtitle": {},
+  "orModelPickerSearchHint": "Search models",
+  "@orModelPickerSearchHint": {},
+  "orModelPickerSkip": "Skip",
+  "@orModelPickerSkip": {},
+  "orModelPickerNoResults": "No matching models",
+  "@orModelPickerNoResults": {}
 }

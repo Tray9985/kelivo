@@ -4291,6 +4291,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String tokenDetailTotalTokens(int count) {
     return '$count tokens';
   }
+
+  @override
+  String get orModelPickerTitle => '选择 OpenRouter 模型';
+
+  @override
+  String get orModelPickerSubtitle =>
+      '未能自动匹配此模型，请手动选择对应的 OpenRouter 条目以获取上下文元数据。';
+
+  @override
+  String get orModelPickerSearchHint => '搜索模型';
+
+  @override
+  String get orModelPickerSkip => '跳过';
+
+  @override
+  String get orModelPickerNoResults => '无匹配模型';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -8528,6 +8544,22 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String tokenDetailTotalTokens(int count) {
     return '$count tokens';
   }
+
+  @override
+  String get orModelPickerTitle => '选择 OpenRouter 模型';
+
+  @override
+  String get orModelPickerSubtitle =>
+      '未能自动匹配此模型，请手动选择对应的 OpenRouter 条目以获取上下文元数据。';
+
+  @override
+  String get orModelPickerSearchHint => '搜索模型';
+
+  @override
+  String get orModelPickerSkip => '跳过';
+
+  @override
+  String get orModelPickerNoResults => '无匹配模型';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -12811,4 +12843,20 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String tokenDetailTotalTokens(int count) {
     return '$count tokens';
   }
+
+  @override
+  String get orModelPickerTitle => '選擇 OpenRouter 模型';
+
+  @override
+  String get orModelPickerSubtitle =>
+      '無法自動匹配此模型，請手動選擇對應的 OpenRouter 條目以獲取上下文元數據。';
+
+  @override
+  String get orModelPickerSearchHint => '搜尋模型';
+
+  @override
+  String get orModelPickerSkip => '跳過';
+
+  @override
+  String get orModelPickerNoResults => '無匹配模型';
 }

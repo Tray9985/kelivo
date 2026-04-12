@@ -4,11 +4,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../core/providers/settings_provider.dart';
 import '../core/providers/model_provider.dart';
+import '../core/utils/openrouter_model_matcher.dart';
 import '../l10n/app_localizations.dart';
 import '../icons/lucide_adapter.dart' as lucide;
 import '../utils/brand_assets.dart';
 import '../utils/model_grouping.dart';
 import '../shared/widgets/model_tag_wrap.dart';
+import '../shared/dialogs/openrouter_model_picker_dialog.dart';
 
 Future<void> showModelFetchDialog(
   BuildContext context, {
@@ -56,6 +58,7 @@ class _ModelFetchDialogBodyState extends State<_ModelFetchDialogBody> {
   bool _loading = true;
   String _error = '';
   List<ModelInfo> _items = const [];
+  Map<String, OpenRouterModelMeta> _catalog = const {};
   final Map<String, bool> _collapsed = <String, bool>{};
 
   @override
@@ -83,32 +86,30 @@ class _ModelFetchDialogBodyState extends State<_ModelFetchDialogBody> {
         cfg.apiKey.trim().isNotEmpty;
     final bool restrictToFree = isDefaultSilicon && !hasUserKey;
     try {
-      if (restrictToFree) {
-        final list = <ModelInfo>[
-          ModelRegistry.infer(
-            ModelInfo(
-              id: 'THUDM/GLM-4-9B-0414',
-              displayName: 'THUDM/GLM-4-9B-0414',
-            ),
-          ),
-          ModelRegistry.infer(
-            ModelInfo(id: 'Qwen/Qwen3-8B', displayName: 'Qwen/Qwen3-8B'),
-          ),
-        ];
-        setState(() {
-          _items = list;
-          _loading = false;
-          _error = '';
-        });
-      } else {
-        final list = await ProviderManager.listModels(cfg);
-        if (!mounted) return;
-        setState(() {
-          _items = list;
-          _loading = false;
-          _error = '';
-        });
-      }
+      final modelsFuture = restrictToFree
+          ? Future<List<ModelInfo>>.value([
+              ModelRegistry.infer(
+                ModelInfo(
+                  id: 'THUDM/GLM-4-9B-0414',
+                  displayName: 'THUDM/GLM-4-9B-0414',
+                ),
+              ),
+              ModelRegistry.infer(
+                ModelInfo(id: 'Qwen/Qwen3-8B', displayName: 'Qwen/Qwen3-8B'),
+              ),
+            ])
+          : ProviderManager.listModels(cfg);
+      final results = await Future.wait<dynamic>([
+        modelsFuture,
+        ProviderManager.fetchOpenRouterCatalog(),
+      ]);
+      if (!mounted) return;
+      setState(() {
+        _items = results[0] as List<ModelInfo>;
+        _catalog = results[1] as Map<String, OpenRouterModelMeta>;
+        _loading = false;
+        _error = '';
+      });
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -117,6 +118,80 @@ class _ModelFetchDialogBodyState extends State<_ModelFetchDialogBody> {
         _error = '$e';
       });
     }
+  }
+
+  /// Writes OpenRouter meta for exact matches only (no UI, used in batch ops).
+  Future<void> _writeMetaBatch(List<String> newlyAddedIds) async {
+    if (_catalog.isEmpty || newlyAddedIds.isEmpty || !mounted) return;
+    final settings = context.read<SettingsProvider>();
+    final cfg = settings.getProviderConfig(
+      widget.providerKey,
+      defaultName: widget.providerDisplayName,
+    );
+    final overrides = Map<String, dynamic>.from(cfg.modelOverrides);
+    bool changed = false;
+    for (final modelId in newlyAddedIds) {
+      final result = OpenRouterModelMatcher.match(modelId, _catalog);
+      if (result is! OpenRouterMatchExact) continue;
+      if (!result.meta.hasData) continue;
+      final existing = Map<String, dynamic>.from(
+        (overrides[modelId] as Map?) ?? const {},
+      );
+      existing.addAll(result.meta.toFullOverrideMap(existing));
+      overrides[modelId] = existing;
+      changed = true;
+    }
+    if (changed && mounted) {
+      await settings.setProviderConfig(
+        widget.providerKey,
+        cfg.copyWith(modelOverrides: overrides),
+      );
+    }
+  }
+
+  /// For a single newly-added model: shows picker dialog when auto-match fails.
+  Future<void> _resolveAndWriteMetaForModel(String modelId) async {
+    if (_catalog.isEmpty || !mounted) return;
+    final result = OpenRouterModelMatcher.match(modelId, _catalog);
+    if (result is OpenRouterMatchExact) {
+      await _writeSingleMeta(modelId, result.meta);
+      return;
+    }
+    if (!mounted) return;
+    final candidates = result is OpenRouterMatchAmbiguous
+        ? result.candidateIds
+        : null;
+    final catalogId = await showOrModelPickerDialog(
+      context,
+      catalog: _catalog,
+      candidates: candidates,
+    );
+    if (catalogId == null || !mounted) return;
+    final meta = _catalog[catalogId];
+    if (meta == null) return;
+    await _writeSingleMeta(modelId, meta);
+  }
+
+  Future<void> _writeSingleMeta(
+    String modelId,
+    OpenRouterModelMeta meta,
+  ) async {
+    if (!meta.hasData || !mounted) return;
+    final settings = context.read<SettingsProvider>();
+    final cfg = settings.getProviderConfig(
+      widget.providerKey,
+      defaultName: widget.providerDisplayName,
+    );
+    final overrides = Map<String, dynamic>.from(cfg.modelOverrides);
+    final existing = Map<String, dynamic>.from(
+      (overrides[modelId] as Map?) ?? const {},
+    );
+    existing.addAll(meta.toFullOverrideMap(existing));
+    overrides[modelId] = existing;
+    await settings.setProviderConfig(
+      widget.providerKey,
+      cfg.copyWith(modelOverrides: overrides),
+    );
   }
 
   String _groupFor(BuildContext context, ModelInfo m) {
@@ -321,6 +396,12 @@ class _ModelFetchDialogBodyState extends State<_ModelFetchDialogBody> {
                                           } else {
                                             // Select all filtered
                                             final setIds = cfg.models.toSet();
+                                            final newlyAdded = filtered
+                                                .where(
+                                                  (m) => !setIds.contains(m.id),
+                                                )
+                                                .map((m) => m.id)
+                                                .toList();
                                             setIds.addAll(
                                               filtered.map((m) => m.id),
                                             );
@@ -330,6 +411,7 @@ class _ModelFetchDialogBodyState extends State<_ModelFetchDialogBody> {
                                                 models: setIds.toList(),
                                               ),
                                             );
+                                            await _writeMetaBatch(newlyAdded);
                                           }
                                           if (mounted) setState(() {});
                                         },
@@ -375,11 +457,13 @@ class _ModelFetchDialogBodyState extends State<_ModelFetchDialogBody> {
                                         ];
                                         if (filtered.isEmpty) return;
                                         final current = cfg.models.toSet();
+                                        final toAdd = <String>[];
                                         for (final m in filtered) {
                                           if (current.contains(m.id)) {
                                             current.remove(m.id);
                                           } else {
                                             current.add(m.id);
+                                            toAdd.add(m.id);
                                           }
                                         }
                                         await settings.setProviderConfig(
@@ -388,6 +472,7 @@ class _ModelFetchDialogBodyState extends State<_ModelFetchDialogBody> {
                                             models: current.toList(),
                                           ),
                                         );
+                                        await _writeMetaBatch(toAdd);
                                         if (mounted) setState(() {});
                                       },
                                     ),
@@ -584,6 +669,7 @@ class _ModelFetchDialogBodyState extends State<_ModelFetchDialogBody> {
                                       widget.providerKey,
                                       old.copyWith(models: set.toList()),
                                     );
+                                await _writeMetaBatch(toAdd);
                               }
                             }
                             if (mounted) setState(() {});
@@ -678,6 +764,7 @@ class _ModelFetchDialogBodyState extends State<_ModelFetchDialogBody> {
                       widget.providerKey,
                       old.copyWith(models: list),
                     );
+                    if (!added) await _resolveAndWriteMetaForModel(m.id);
                     if (mounted) setState(() {});
                   },
                   icon: Icon(
