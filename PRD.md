@@ -2,6 +2,9 @@
 
 本文档记录已实现的产品需求，供后续迭代参考。
 
+构建：
+fvm flutter run --release -d iPhoneID
+fvm flutter build macos --release
 ---
 
 ## 1. 供应商列表精简
