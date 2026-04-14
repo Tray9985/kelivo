@@ -86,6 +86,8 @@ class ChatInputBar extends StatefulWidget {
     this.showOcrButton = false,
     this.ocrActive = false,
     this.onToggleOcr,
+    this.contextUsageFraction,
+    this.contextUsageTooltip,
   });
 
   final Future<ChatInputSubmissionResult> Function(ChatInputData)? onSend;
@@ -131,6 +133,8 @@ class ChatInputBar extends StatefulWidget {
   final bool showOcrButton;
   final bool ocrActive;
   final VoidCallback? onToggleOcr;
+  final double? contextUsageFraction;
+  final String? contextUsageTooltip;
 
   @override
   State<ChatInputBar> createState() => _ChatInputBarState();
@@ -1775,6 +1779,13 @@ class _ChatInputBarState extends State<ChatInputBar>
                             ),
                             Row(
                               children: [
+                                if (widget.contextUsageFraction != null) ...[
+                                  _ContextRing(
+                                    fraction: widget.contextUsageFraction!,
+                                    tooltip: widget.contextUsageTooltip ?? '',
+                                  ),
+                                  const SizedBox(width: 8),
+                                ],
                                 if (widget.showMoreButton) ...[
                                   _CompactIconButton(
                                     tooltip: AppLocalizations.of(
@@ -2024,6 +2035,42 @@ class _CompactIconButton extends StatelessWidget {
       message: tooltip!,
       waitDuration: const Duration(milliseconds: 350),
       child: Semantics(tooltip: tooltip!, child: button),
+    );
+  }
+}
+
+class _ContextRing extends StatelessWidget {
+  const _ContextRing({required this.fraction, required this.tooltip});
+
+  final double fraction;
+  final String tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final Color color;
+    if (fraction >= 0.9) {
+      color = theme.colorScheme.error;
+    } else if (fraction >= 0.7) {
+      color = Colors.orange;
+    } else {
+      color = theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5);
+    }
+    return Tooltip(
+      message: tooltip,
+      child: SizedBox(
+        width: 18,
+        height: 18,
+        child: CircularProgressIndicator(
+          value: fraction.clamp(0.0, 1.0),
+          strokeWidth: 2,
+          backgroundColor: theme.colorScheme.outlineVariant.withValues(
+            alpha: 0.25,
+          ),
+          valueColor: AlwaysStoppedAnimation<Color>(color),
+          strokeCap: StrokeCap.round,
+        ),
+      ),
     );
   }
 }

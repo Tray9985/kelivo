@@ -914,6 +914,7 @@ class _HomePageState extends State<HomePage>
       onToggleLearningMode: _openInstructionInjectionPopover,
       onOpenWorldBook: _openWorldBookPopover,
       onLongPressLearning: _showLearningPromptSheet,
+      messages: _controller.messages,
       onClearContext: _controller.clearContext,
       onCompressContext: _handleDesktopCompressContext,
     );

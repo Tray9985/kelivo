@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../../../core/models/chat_input_data.dart';
 import '../../../core/models/assistant.dart';
+import '../../../core/models/chat_message.dart';
+import '../../../core/models/openrouter_model_meta.dart';
 import '../../../core/providers/settings_provider.dart';
 import '../../../core/providers/assistant_provider.dart';
 import '../../../core/providers/mcp_provider.dart';
@@ -64,6 +66,7 @@ class ChatInputSection extends StatelessWidget {
     this.onLongPressLearning,
     this.onClearContext,
     this.onCompressContext,
+    this.messages = const [],
   });
 
   final GlobalKey inputBarKey;
@@ -103,6 +106,7 @@ class ChatInputSection extends StatelessWidget {
   final VoidCallback? onLongPressLearning;
   final VoidCallback? onClearContext;
   final VoidCallback? onCompressContext;
+  final List<ChatMessage> messages;
 
   @override
   Widget build(BuildContext context) {
@@ -125,6 +129,14 @@ class ChatInputSection extends StatelessWidget {
     final isDesktop = _isDesktopPlatform(context);
     final hasWorldBooks =
         isTablet && context.watch<WorldBookProvider>().books.isNotEmpty;
+
+    // Compute context usage ring data.
+    final (contextUsageFraction, contextUsageTooltip) = _computeContextUsage(
+      settings,
+      a,
+      pk,
+      mid,
+    );
 
     return ChatInputBar(
       key: inputBarKey,
@@ -201,7 +213,58 @@ class ChatInputSection extends StatelessWidget {
       showMoreButton: !isTablet,
       onClearContext: isTablet ? onClearContext : null,
       onCompressContext: isTablet ? onCompressContext : null,
+      contextUsageFraction: contextUsageFraction,
+      contextUsageTooltip: contextUsageTooltip,
     );
+  }
+
+  /// Returns (fraction, tooltipLabel) for the context usage ring.
+  /// fraction is null when orContextLength is unknown.
+  (double?, String?) _computeContextUsage(
+    SettingsProvider settings,
+    Assistant? assistant,
+    String? providerKey,
+    String? modelId,
+  ) {
+    if (providerKey == null || modelId == null) return (null, null);
+
+    final cfg = settings.getProviderConfig(providerKey);
+    final overrides = cfg.modelOverrides[modelId] as Map?;
+    final contextLength =
+        overrides?[OpenRouterModelMeta.kContextLength] as int?;
+    if (contextLength == null || contextLength <= 0) return (null, null);
+
+    // Apply Phase 1 count-based trim (mirror message_builder_service logic).
+    var msgs = messages;
+    if ((assistant?.limitContextMessages ?? true) &&
+        (assistant?.contextMessageSize ?? 0) > 0) {
+      final keep = (assistant!.contextMessageSize).clamp(
+        Assistant.minContextMessageSize,
+        Assistant.maxContextMessageSize,
+      );
+      if (msgs.length > keep) {
+        msgs = msgs.sublist(msgs.length - keep);
+      }
+    }
+
+    // Estimate tokens: ⌈chars / 4⌉ + 4 per message (same formula as builder).
+    int totalTokens = 0;
+    for (final msg in msgs) {
+      totalTokens += (msg.content.length / 4).ceil() + 4;
+    }
+
+    final fraction = (totalTokens / contextLength).clamp(0.0, 1.0);
+    final tooltip =
+        '${_formatTokens(totalTokens)} / ${_formatTokens(contextLength)}';
+    return (fraction, tooltip);
+  }
+
+  static String _formatTokens(int tokens) {
+    if (tokens >= 1000000) {
+      return '${(tokens / 1000000).toStringAsFixed(1)}M';
+    }
+    if (tokens >= 1000) return '${(tokens / 1000).round()}K';
+    return '$tokens';
   }
 
   bool _isDesktopPlatform(BuildContext context) {
