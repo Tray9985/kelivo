@@ -6944,6 +6944,18 @@ abstract class AppLocalizations {
   /// **'Generation interrupted'**
   String get generationInterrupted;
 
+  /// No description provided for @requestFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Request failed, please check the error details'**
+  String get requestFailed;
+
+  /// No description provided for @requestFailedPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Request failed: '**
+  String get requestFailedPrefix;
+
   /// No description provided for @titleForLocale.
   ///
   /// In en, this message translates to:

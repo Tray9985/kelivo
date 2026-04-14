@@ -3720,6 +3720,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get generationInterrupted => 'Generation interrupted';
 
   @override
+  String get requestFailed => 'Request failed, please check the error details';
+
+  @override
+  String get requestFailedPrefix => 'Request failed: ';
+
+  @override
   String get titleForLocale => 'New Chat';
 
   @override

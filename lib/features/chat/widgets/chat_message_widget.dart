@@ -130,6 +130,8 @@ class ChatMessageWidget extends StatefulWidget {
   final bool hideStreamingIndicator;
   // Whether files are currently being processed
   final bool isProcessingFiles;
+  // Error text from a failed stream (shown as collapsible error section)
+  final String? errorText;
 
   const ChatMessageWidget({
     super.key,
@@ -166,6 +168,7 @@ class ChatMessageWidget extends StatefulWidget {
     this.toolParts,
     this.hideStreamingIndicator = false,
     this.isProcessingFiles = false,
+    this.errorText,
   });
 
   @override
@@ -1559,59 +1562,62 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                   : Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Builder(
-                          builder: (context) {
-                            final bool isDesktop =
-                                defaultTargetPlatform == TargetPlatform.macOS ||
-                                defaultTargetPlatform ==
-                                    TargetPlatform.windows ||
-                                defaultTargetPlatform == TargetPlatform.linux;
-                            final double baseAssistant = isDesktop
-                                ? 14.0
-                                : 15.7;
-                            Widget assistantContent;
-                            if (settings.enableAssistantMarkdown) {
-                              assistantContent = MarkdownWithCodeHighlight(
-                                text: visualContent,
-                                onCitationTap: (id) => _handleCitationTap(id),
-                                baseStyle: TextStyle(
-                                  fontSize: baseAssistant,
-                                  height: 1.5,
-                                ),
-                              );
-                            } else {
-                              assistantContent = Text(
-                                visualContent,
-                                style: TextStyle(
-                                  fontSize: baseAssistant,
-                                  height: 1.5,
-                                  color: cs.onSurface,
-                                ),
-                              );
-                            }
+                        if (visualContent.isNotEmpty)
+                          Builder(
+                            builder: (context) {
+                              final bool isDesktop =
+                                  defaultTargetPlatform ==
+                                      TargetPlatform.macOS ||
+                                  defaultTargetPlatform ==
+                                      TargetPlatform.windows ||
+                                  defaultTargetPlatform == TargetPlatform.linux;
+                              final double baseAssistant = isDesktop
+                                  ? 14.0
+                                  : 15.7;
+                              Widget assistantContent;
+                              if (settings.enableAssistantMarkdown) {
+                                assistantContent = MarkdownWithCodeHighlight(
+                                  text: visualContent,
+                                  onCitationTap: (id) => _handleCitationTap(id),
+                                  baseStyle: TextStyle(
+                                    fontSize: baseAssistant,
+                                    height: 1.5,
+                                  ),
+                                );
+                              } else {
+                                assistantContent = Text(
+                                  visualContent,
+                                  style: TextStyle(
+                                    fontSize: baseAssistant,
+                                    height: 1.5,
+                                    color: cs.onSurface,
+                                  ),
+                                );
+                              }
 
-                            final media = MediaQuery.maybeOf(context);
-                            final bool reduceMotion =
-                                (media?.disableAnimations ?? false) ||
-                                (media?.accessibleNavigation ?? false);
-                            assistantContent = _StreamingAssistantMessageMotion(
-                              enabled:
-                                  widget.message.isStreaming &&
-                                  !reduceMotion &&
-                                  visualContent.isNotEmpty,
-                              child: assistantContent,
-                            );
-                            return RepaintBoundary(
-                              child: DefaultTextStyle.merge(
-                                style: TextStyle(
-                                  fontSize: baseAssistant,
-                                  height: 1.5,
+                              final media = MediaQuery.maybeOf(context);
+                              final bool reduceMotion =
+                                  (media?.disableAnimations ?? false) ||
+                                  (media?.accessibleNavigation ?? false);
+                              assistantContent =
+                                  _StreamingAssistantMessageMotion(
+                                    enabled:
+                                        widget.message.isStreaming &&
+                                        !reduceMotion &&
+                                        visualContent.isNotEmpty,
+                                    child: assistantContent,
+                                  );
+                              return RepaintBoundary(
+                                child: DefaultTextStyle.merge(
+                                  style: TextStyle(
+                                    fontSize: baseAssistant,
+                                    height: 1.5,
+                                  ),
+                                  child: assistantContent,
                                 ),
-                                child: assistantContent,
-                              ),
-                            );
-                          },
-                        ),
+                              );
+                            },
+                          ),
                         // Inline sources removed; show a summary card at bottom instead
                         if (widget.message.isStreaming)
                           Padding(
@@ -1788,6 +1794,12 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                               ),
                             ),
                           ),
+                        ],
+                        // Error section (shown when stream failed)
+                        if (widget.errorText != null &&
+                            widget.errorText!.isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          _ErrorSection(errorText: widget.errorText!),
                         ],
                       ],
                     ),
@@ -2091,13 +2103,14 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
       }
       return;
     }
-    final isMobile = defaultTargetPlatform == TargetPlatform.iOS ||
+    final isMobile =
+        defaultTargetPlatform == TargetPlatform.iOS ||
         defaultTargetPlatform == TargetPlatform.android;
     if (isMobile) {
       if (!mounted) return;
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => WebViewPage(url: url)),
-      );
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => WebViewPage(url: url)));
       return;
     }
     try {
@@ -4096,6 +4109,121 @@ class _ShimmerState extends State<_Shimmer> with TickerProviderStateMixin {
         );
       },
       child: widget.child,
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// _ErrorSection
+// ---------------------------------------------------------------------------
+
+class _ErrorSection extends StatefulWidget {
+  const _ErrorSection({required this.errorText});
+
+  final String errorText;
+
+  @override
+  State<_ErrorSection> createState() => _ErrorSectionState();
+}
+
+class _ErrorSectionState extends State<_ErrorSection> {
+  bool _expanded = false;
+
+  String get _summary {
+    final firstLine = widget.errorText.split('\n').first.trim();
+    return firstLine.length <= 80
+        ? firstLine
+        : '${firstLine.substring(0, 80)}…';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
+    final summary = '${l10n.requestFailedPrefix}$_summary';
+
+    final bg = isDark
+        ? const Color(0xFF3B1515).withValues(alpha: 0.85)
+        : const Color(0xFFFFEDED).withValues(alpha: 0.95);
+    final errorRed = isDark ? const Color(0xFFFF6B6B) : const Color(0xFFD32F2F);
+
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 300),
+      curve: const Cubic(0.2, 0.8, 0.2, 1),
+      alignment: Alignment.topCenter,
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              IosCardPress(
+                borderRadius: BorderRadius.circular(12),
+                baseColor: Colors.transparent,
+                pressedScale: 1.0,
+                duration: const Duration(milliseconds: 220),
+                onTap: () => setState(() => _expanded = !_expanded),
+                padding: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 6,
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.error_outline_rounded,
+                        size: 18,
+                        color: errorRed,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          summary,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: errorRed,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      AnimatedRotation(
+                        turns: _expanded ? 0.25 : 0.0,
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeInOutCubic,
+                        child: Icon(
+                          Lucide.ChevronRight,
+                          size: 18,
+                          color: errorRed,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              if (_expanded)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 2, 8, 6),
+                  child: Text(
+                    widget.errorText,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      height: 1.32,
+                      color: errorRed.withValues(alpha: 0.85),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

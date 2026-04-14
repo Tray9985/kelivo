@@ -3578,6 +3578,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get generationInterrupted => '生成已中断';
 
   @override
+  String get requestFailed => '请求失败，请查看报错信息';
+
+  @override
+  String get requestFailedPrefix => '请求失败：';
+
+  @override
   String get titleForLocale => '新对话';
 
   @override
@@ -7850,6 +7856,12 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get generationInterrupted => '生成已中断';
+
+  @override
+  String get requestFailed => '请求失败，请查看报错信息';
+
+  @override
+  String get requestFailedPrefix => '请求失败：';
 
   @override
   String get titleForLocale => '新对话';
@@ -12130,6 +12142,12 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get generationInterrupted => '生成已中斷';
+
+  @override
+  String get requestFailed => '請求失敗，請查看報錯資訊';
+
+  @override
+  String get requestFailedPrefix => '請求失敗：';
 
   @override
   String get titleForLocale => '新對話';

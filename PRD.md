@@ -118,3 +118,22 @@
 - 根因：macOS 切换应用时，Flutter 发出 `inactive → hidden` 生命周期序列，`hidden` 导致 `SchedulerBinding.framesEnabled = false`，所有帧调度（包括 `ValueNotifier` 刷新和 `AnimationController`）冻结
 - 修复方式：在 `_HomePageState.didChangeAppLifecycleState` 中，当检测到 `hidden` + 桌面平台 + 窗口仅失焦（非最小化/隐藏）时，通过 `Future.microtask` 重新调用 `handleAppLifecycleStateChanged(inactive)`，将帧调度恢复为启用状态
 - `DesktopWindowController` 新增 `isWindowBlurred` 追踪，用于区分"失焦但可见"与"真正隐藏"
+
+---
+
+## 15. macOS 启动图标更新
+
+- 图标替换为以原始 Logo SVG（rsshub-color.svg）为主体、白色背景、Logo 居中占 80% 面积的方案
+- 替换全部 7 个尺寸：16 / 32 / 64 / 128 / 256 / 512 / 1024px
+
+---
+
+## 16. 流式请求报错展示优化
+
+- **Toast**：报错时固定显示"请求失败，请查看报错信息"，不再将原始错误字符串拼入 toast
+- **消息气泡**：报错不再写入消息 content，改为独立的 `errorText` 字段存储原始错误
+- **错误 UI**：在 assistant 消息气泡内，以与"深度思考"一致的折叠 UI 展示错误：
+  - 收起态：淡红色背景，显示"请求失败：{错误首行}"，可点击展开
+  - 展开态：显示完整原始错误原文
+- 若流中断前已生成部分内容，部分内容正常显示，错误 UI 附在其后
+- `ChatMessage` 模型新增 `@HiveField(20) String? errorText` 字段（向后兼容，旧消息该字段为 null）

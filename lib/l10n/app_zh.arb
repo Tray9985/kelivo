@@ -1197,6 +1197,8 @@
   "searchServiceNameBocha": "博查",
   "searchProviderBochaDescription": "博查 AI 全网网页搜索，支持时间范围与摘要，更适合 AI 使用。",
   "generationInterrupted": "生成已中断",
+  "requestFailed": "请求失败，请查看报错信息",
+  "requestFailedPrefix": "请求失败：",
   "titleForLocale": "新对话",
   "displaySettingsPageEnableDollarLatexTitle": "启用 $...$ 渲染",
   "displaySettingsPageEnableDollarLatexSubtitle": "将 $...$ 之间的内容按行内数学公式渲染",

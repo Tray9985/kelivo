@@ -658,6 +658,7 @@ class ChatService extends ChangeNotifier {
     int? completionTokens,
     int? cachedTokens,
     int? durationMs,
+    String? errorText,
   }) async {
     if (!_initialized) return;
 
@@ -678,6 +679,7 @@ class ChatService extends ChangeNotifier {
       completionTokens: completionTokens ?? message.completionTokens,
       cachedTokens: cachedTokens ?? message.cachedTokens,
       durationMs: durationMs ?? message.durationMs,
+      errorText: errorText ?? message.errorText,
     );
 
     await _messagesBox.put(messageId, updatedMessage);

@@ -615,6 +615,7 @@ class MessageListView extends StatelessWidget {
             })()
           : null,
       isProcessingFiles: isProcessingFiles,
+      errorText: message.role == 'assistant' ? message.errorText : null,
     );
   }
 }

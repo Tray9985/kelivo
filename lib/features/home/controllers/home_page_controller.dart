@@ -387,7 +387,7 @@ class HomePageController extends ChangeNotifier {
       case 'audio_attachment_unsupported':
         return l10n.homePageAudioAttachmentUnsupported;
       default:
-        return '${l10n.generationInterrupted}: $error';
+        return l10n.requestFailed;
     }
   }
 

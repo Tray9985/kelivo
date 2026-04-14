@@ -1115,25 +1115,24 @@ class ChatActions {
     streamController.markStreamingEnded(messageId);
 
     streamController.cleanupTimers(messageId);
-    final rawContent = state.fullContentRaw.isNotEmpty
-        ? state.fullContentRaw
-        : errorText;
-    final processed = _transformAssistantContent(state, rawContent);
-    // Let UI provide the localized error message
-    final displayContent = processed.isNotEmpty ? processed : errorText;
+    final partialContent = state.fullContentRaw.isNotEmpty
+        ? _transformAssistantContent(state, state.fullContentRaw)
+        : '';
     await chatService.updateMessage(
       messageId,
-      content: displayContent,
+      content: partialContent,
       totalTokens: state.totalTokens,
       isStreaming: false,
+      errorText: errorText,
     );
 
     final index = _messages.indexWhere((m) => m.id == messageId);
     if (index != -1) {
       _messages[index] = _messages[index].copyWith(
-        content: displayContent,
+        content: partialContent,
         isStreaming: false,
         totalTokens: state.totalTokens,
+        errorText: errorText,
       );
       onMessagesChanged?.call();
     }

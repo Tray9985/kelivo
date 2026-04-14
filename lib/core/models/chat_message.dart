@@ -70,6 +70,9 @@ class ChatMessage extends HiveObject {
   @HiveField(19)
   final int? durationMs;
 
+  @HiveField(20)
+  final String? errorText;
+
   ChatMessage({
     String? id,
     required this.role,
@@ -91,6 +94,7 @@ class ChatMessage extends HiveObject {
     this.completionTokens,
     this.cachedTokens,
     this.durationMs,
+    this.errorText,
   }) : id = id ?? const Uuid().v4(),
        timestamp = timestamp ?? DateTime.now(),
        groupId = groupId ?? id,
@@ -117,6 +121,7 @@ class ChatMessage extends HiveObject {
     int? completionTokens,
     int? cachedTokens,
     int? durationMs,
+    String? errorText,
   }) {
     return ChatMessage(
       id: id ?? this.id,
@@ -140,6 +145,7 @@ class ChatMessage extends HiveObject {
       completionTokens: completionTokens ?? this.completionTokens,
       cachedTokens: cachedTokens ?? this.cachedTokens,
       durationMs: durationMs ?? this.durationMs,
+      errorText: errorText ?? this.errorText,
     );
   }
 
@@ -165,6 +171,7 @@ class ChatMessage extends HiveObject {
       'completionTokens': completionTokens,
       'cachedTokens': cachedTokens,
       'durationMs': durationMs,
+      'errorText': errorText,
     };
   }
 
@@ -194,6 +201,7 @@ class ChatMessage extends HiveObject {
       completionTokens: json['completionTokens'] as int?,
       cachedTokens: json['cachedTokens'] as int?,
       durationMs: json['durationMs'] as int?,
+      errorText: json['errorText'] as String?,
     );
   }
 }
