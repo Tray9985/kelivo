@@ -2058,6 +2058,8 @@ class _ContextRing extends StatelessWidget {
     }
     return Tooltip(
       message: tooltip,
+      triggerMode: TooltipTriggerMode.tap,
+      preferBelow: false,
       child: SizedBox(
         width: 18,
         height: 18,
