@@ -6,6 +6,7 @@ import '../icons/lucide_adapter.dart' as lucide;
 import '../l10n/app_localizations.dart';
 import '../core/providers/settings_provider.dart';
 import '../core/providers/model_provider.dart';
+import '../shared/dialogs/openrouter_model_picker_dialog.dart';
 import '../core/services/api/builtin_tools.dart';
 import '../core/services/model_override_resolver.dart';
 import '../core/services/logging/flutter_logger.dart';
@@ -105,6 +106,10 @@ class _ModelEditDialogBodyState extends State<_ModelEditDialogBody>
 
   // Provider kind for conditional UI
   ProviderKind? _providerKind;
+
+  // OpenRouter metadata
+  OpenRouterModelMeta? _fetchedMeta;
+  bool _isFetchingMeta = false;
 
   // Google built-in tools
   bool _googleUrlContextTool = false;
@@ -539,6 +544,12 @@ class _ModelEditDialogBodyState extends State<_ModelEditDialogBody>
               },
               decoration: _deskInputDecoration(context),
             ),
+            const SizedBox(height: 12),
+            _DeskFetchMetaButton(
+              loading: _isFetchingMeta,
+              onTap: _isFetchingMeta ? null : _fetchMeta,
+              label: l10n.modelDetailSheetFetchMetaButton,
+            ),
           ],
         ),
       ),
@@ -815,6 +826,65 @@ class _ModelEditDialogBodyState extends State<_ModelEditDialogBody>
     }
   }
 
+  Future<void> _fetchMeta() async {
+    if (_isFetchingMeta) return;
+    final l10n = AppLocalizations.of(context)!;
+    final modelId = _idCtrl.text.trim();
+    if (modelId.length < 2) {
+      showAppSnackBar(
+        context,
+        message: l10n.modelDetailSheetInvalidIdError,
+        type: NotificationType.warning,
+      );
+      return;
+    }
+    setState(() => _isFetchingMeta = true);
+    try {
+      final catalog = await ProviderManager.fetchOpenRouterCatalog();
+      if (!mounted) return;
+      if (catalog.isEmpty) {
+        showAppSnackBar(
+          context,
+          message: l10n.modelDetailSheetMetaFetchFailed,
+          type: NotificationType.error,
+        );
+        return;
+      }
+      final meta = await resolveOrMeta(
+        context,
+        modelId: modelId,
+        catalog: catalog,
+      );
+      if (!mounted) return;
+      if (meta == null) return;
+      setState(() {
+        _fetchedMeta = meta;
+        final orName = meta.name?.trim();
+        if (orName != null && orName.isNotEmpty) {
+          _nameCtrl.text = orName;
+          _nameEdited = true;
+        }
+        if (meta.supportsTools) _abilities.add(ModelAbility.tool);
+        if (meta.supportsReasoning) _abilities.add(ModelAbility.reasoning);
+        if (meta.supportsVision) _input.add(Modality.image);
+      });
+      showAppSnackBar(
+        context,
+        message: l10n.modelDetailSheetMetaFetchSuccess,
+        type: NotificationType.success,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        message: l10n.modelDetailSheetMetaFetchFailed,
+        type: NotificationType.error,
+      );
+    } finally {
+      if (mounted) setState(() => _isFetchingMeta = false);
+    }
+  }
+
   Future<void> _save() async {
     final settings = context.read<SettingsProvider>();
     final old = settings.getProviderConfig(widget.providerKey);
@@ -897,6 +967,19 @@ class _ModelEditDialogBodyState extends State<_ModelEditDialogBody>
       'body': bodies,
       if (!isEmbedding && builtInTools.isNotEmpty) 'builtInTools': builtInTools,
     };
+    // Inject OR meta keys fetched via button (contextLength, maxCompletionTokens).
+    // Abilities/input are already reflected in the form state above.
+    final fetchedMeta = _fetchedMeta;
+    if (fetchedMeta != null) {
+      final m = ov[key] as Map<String, dynamic>;
+      if (fetchedMeta.contextLength != null) {
+        m[OpenRouterModelMeta.kContextLength] = fetchedMeta.contextLength;
+      }
+      if (fetchedMeta.maxCompletionTokens != null) {
+        m[OpenRouterModelMeta.kMaxCompletionTokens] =
+            fetchedMeta.maxCompletionTokens;
+      }
+    }
 
     try {
       if (prevKey.isEmpty || widget.isNew) {
@@ -1689,5 +1772,101 @@ class _CopySuffixButtonState extends State<_CopySuffixButton> {
     );
 
     return Tooltip(message: widget.tooltip, child: child);
+  }
+}
+
+class _DeskFetchMetaButton extends StatefulWidget {
+  const _DeskFetchMetaButton({
+    required this.label,
+    required this.loading,
+    this.onTap,
+  });
+  final String label;
+  final bool loading;
+  final VoidCallback? onTap;
+  @override
+  State<_DeskFetchMetaButton> createState() => _DeskFetchMetaButtonState();
+}
+
+class _DeskFetchMetaButtonState extends State<_DeskFetchMetaButton> {
+  bool _hover = false;
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bool disabled = widget.onTap == null || widget.loading;
+    final baseBg = isDark ? Colors.white10 : const Color(0xFFF7F7F9);
+    final hoverBg = Color.alphaBlend(
+      cs.primary.withValues(alpha: isDark ? 0.10 : 0.06),
+      baseBg,
+    );
+    final pressedBg = Color.alphaBlend(
+      cs.primary.withValues(alpha: isDark ? 0.16 : 0.10),
+      baseBg,
+    );
+    final bg = disabled
+        ? baseBg
+        : (_pressed ? pressedBg : (_hover ? hoverBg : baseBg));
+    return Opacity(
+      opacity: disabled && !widget.loading ? 0.5 : 1.0,
+      child: MouseRegion(
+        cursor: disabled ? SystemMouseCursors.basic : SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _hover = true),
+        onExit: (_) => setState(() {
+          _hover = false;
+          _pressed = false;
+        }),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapDown: disabled ? null : (_) => setState(() => _pressed = true),
+          onTapUp: disabled ? null : (_) => setState(() => _pressed = false),
+          onTapCancel: disabled ? null : () => setState(() => _pressed = false),
+          onTap: disabled ? null : widget.onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 140),
+            curve: Curves.easeOutCubic,
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: cs.outlineVariant.withValues(
+                  alpha: isDark ? 0.22 : 0.18,
+                ),
+                width: 0.8,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (widget.loading)
+                  SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: cs.primary,
+                    ),
+                  )
+                else
+                  Icon(lucide.Lucide.Sparkles, size: 14, color: cs.primary),
+                const SizedBox(width: 8),
+                Text(
+                  widget.label,
+                  style: TextStyle(
+                    color: cs.primary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

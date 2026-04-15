@@ -2493,6 +2493,24 @@ class AppLocalizationsEn extends AppLocalizations {
       'Enable image generation tool';
 
   @override
+  String get modelDetailSheetFetchMetaButton => 'Fetch Metadata';
+
+  @override
+  String get modelDetailSheetMetaFetchSuccess => 'Metadata fetched';
+
+  @override
+  String get modelDetailSheetMetaFetchFailed => 'Failed to fetch metadata';
+
+  @override
+  String get providerDetailPageRefreshMetaTooltip => 'Refresh Metadata';
+
+  @override
+  String get providerDetailPageMetaRefreshSuccess => 'Metadata updated';
+
+  @override
+  String get providerDetailPageMetaRefreshNotFound => 'No metadata found';
+
+  @override
   String get modelDetailSheetCancelButton => 'Cancel';
 
   @override

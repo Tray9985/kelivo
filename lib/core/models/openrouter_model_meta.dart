@@ -5,6 +5,7 @@
 /// prefix to avoid collisions with existing override fields.
 class OpenRouterModelMeta {
   const OpenRouterModelMeta({
+    this.name,
     this.contextLength,
     this.maxCompletionTokens,
     this.supportsTools = false,
@@ -17,6 +18,9 @@ class OpenRouterModelMeta {
 
   /// Key used in modelOverrides map for max completion tokens.
   static const String kMaxCompletionTokens = 'orMaxCompletionTokens';
+
+  /// Display name as returned by the OpenRouter catalog (e.g. "OpenAI: GPT-4o").
+  final String? name;
 
   final int? contextLength;
   final int? maxCompletionTokens;
@@ -57,6 +61,7 @@ class OpenRouterModelMeta {
     final supportsVision = inputMods.contains('image');
 
     return OpenRouterModelMeta(
+      name: json['name'] as String?,
       contextLength: contextLength,
       maxCompletionTokens: maxCompletionTokens,
       supportsTools: supportsTools,
@@ -132,7 +137,7 @@ class OpenRouterModelMeta {
 
   @override
   String toString() =>
-      'OpenRouterModelMeta(contextLength: $contextLength, '
+      'OpenRouterModelMeta(name: $name, contextLength: $contextLength, '
       'maxCompletionTokens: $maxCompletionTokens, '
       'supportsTools: $supportsTools, '
       'supportsReasoning: $supportsReasoning, '

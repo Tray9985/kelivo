@@ -2406,6 +2406,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get modelDetailSheetOpenaiImageGenerationToolDescription => '启用图像生成工具';
 
   @override
+  String get modelDetailSheetFetchMetaButton => '获取元数据';
+
+  @override
+  String get modelDetailSheetMetaFetchSuccess => '元数据获取成功';
+
+  @override
+  String get modelDetailSheetMetaFetchFailed => '元数据获取失败';
+
+  @override
+  String get providerDetailPageRefreshMetaTooltip => '刷新元数据';
+
+  @override
+  String get providerDetailPageMetaRefreshSuccess => '元数据已更新';
+
+  @override
+  String get providerDetailPageMetaRefreshNotFound => '未找到元数据';
+
+  @override
   String get modelDetailSheetCancelButton => '取消';
 
   @override
@@ -6684,6 +6702,24 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get modelDetailSheetOpenaiImageGenerationToolDescription => '启用图像生成工具';
+
+  @override
+  String get modelDetailSheetFetchMetaButton => '获取元数据';
+
+  @override
+  String get modelDetailSheetMetaFetchSuccess => '元数据获取成功';
+
+  @override
+  String get modelDetailSheetMetaFetchFailed => '元数据获取失败';
+
+  @override
+  String get providerDetailPageRefreshMetaTooltip => '刷新元数据';
+
+  @override
+  String get providerDetailPageMetaRefreshSuccess => '元数据已更新';
+
+  @override
+  String get providerDetailPageMetaRefreshNotFound => '未找到元数据';
 
   @override
   String get modelDetailSheetCancelButton => '取消';
@@ -10973,6 +11009,24 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get modelDetailSheetOpenaiImageGenerationToolDescription => '啟用圖像生成工具';
+
+  @override
+  String get modelDetailSheetFetchMetaButton => '獲取元數據';
+
+  @override
+  String get modelDetailSheetMetaFetchSuccess => '元數據獲取成功';
+
+  @override
+  String get modelDetailSheetMetaFetchFailed => '元數據獲取失敗';
+
+  @override
+  String get providerDetailPageRefreshMetaTooltip => '重新整理元數據';
+
+  @override
+  String get providerDetailPageMetaRefreshSuccess => '元數據已更新';
+
+  @override
+  String get providerDetailPageMetaRefreshNotFound => '未找到元數據';
 
   @override
   String get modelDetailSheetCancelButton => '取消';

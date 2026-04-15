@@ -74,6 +74,7 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
   final Map<String, String> _detectionErrorMessages = {};
   String? _currentDetectingModel;
   final Set<String> _pendingModels = {};
+  final Set<String> _refreshingMeta = {};
   bool _aihubmixAppCodeEnabled = false;
 
   // Custom request headers
@@ -1350,6 +1351,8 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
                       detectionErrorMessage: _detectionErrorMessages[id],
                       isDetecting: _currentDetectingModel == id,
                       isPending: _pendingModels.contains(id),
+                      onRefreshMeta: () => _fetchMetaForModel(id),
+                      isRefreshingMeta: _refreshingMeta.contains(id),
                     ),
                   ),
                 ),
@@ -2390,6 +2393,77 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
 
   // _saveNetwork moved to ProviderNetworkPage
 
+  Future<void> _fetchMetaForModel(String modelId) async {
+    if (_refreshingMeta.contains(modelId)) return;
+    setState(() => _refreshingMeta.add(modelId));
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      final catalog = await ProviderManager.fetchOpenRouterCatalog();
+      if (!mounted) return;
+      if (catalog.isEmpty) {
+        showAppSnackBar(
+          context,
+          message: l10n.providerDetailPageMetaRefreshNotFound,
+          type: NotificationType.warning,
+        );
+        return;
+      }
+      final result = OpenRouterModelMatcher.match(modelId, catalog);
+      OpenRouterModelMeta? meta;
+      if (result is OpenRouterMatchExact) {
+        meta = result.meta;
+      } else if (result is OpenRouterMatchAmbiguous) {
+        if (!mounted) return;
+        final catalogId = await showOrModelPickerDialog(
+          context,
+          catalog: catalog,
+          candidates: result.candidateIds,
+        );
+        if (!mounted) return;
+        if (catalogId != null) meta = catalog[catalogId];
+      }
+      if (!mounted) return;
+      if (meta == null || !meta.hasData) {
+        showAppSnackBar(
+          context,
+          message: l10n.providerDetailPageMetaRefreshNotFound,
+          type: NotificationType.warning,
+        );
+        return;
+      }
+      final settings = context.read<SettingsProvider>();
+      final cfg = settings.getProviderConfig(
+        widget.keyName,
+        defaultName: widget.displayName,
+      );
+      final overrides = Map<String, dynamic>.from(cfg.modelOverrides);
+      final existing = Map<String, dynamic>.from(
+        (overrides[modelId] as Map?) ?? const {},
+      );
+      existing.addAll(meta.toFullOverrideMap(existing));
+      overrides[modelId] = existing;
+      await settings.setProviderConfig(
+        widget.keyName,
+        cfg.copyWith(modelOverrides: overrides),
+      );
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        message: l10n.providerDetailPageMetaRefreshSuccess,
+        type: NotificationType.success,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        message: l10n.providerDetailPageMetaRefreshNotFound,
+        type: NotificationType.error,
+      );
+    } finally {
+      if (mounted) setState(() => _refreshingMeta.remove(modelId));
+    }
+  }
+
   Future<void> _showModelPicker(BuildContext context) async {
     final cs = Theme.of(context).colorScheme;
     final settings = context.read<SettingsProvider>();
@@ -3189,6 +3263,8 @@ class _ModelCard extends StatelessWidget {
     this.detectionErrorMessage,
     this.isDetecting = false,
     this.isPending = false,
+    this.onRefreshMeta,
+    this.isRefreshingMeta = false,
   });
   final String providerKey;
   final String modelId;
@@ -3199,6 +3275,8 @@ class _ModelCard extends StatelessWidget {
   final String? detectionErrorMessage;
   final bool isDetecting;
   final bool isPending;
+  final VoidCallback? onRefreshMeta;
+  final bool isRefreshingMeta;
 
   @override
   Widget build(BuildContext context) {
@@ -3306,6 +3384,36 @@ class _ModelCard extends StatelessWidget {
                   ),
                 ),
                 if (!isSelectionMode) ...[
+                  // Show refresh-meta button when meta is absent
+                  if (resolved.ov?[OpenRouterModelMeta.kContextLength] ==
+                      null) ...[
+                    const SizedBox(width: 4),
+                    if (isRefreshingMeta)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                        child: SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: cs.primary,
+                          ),
+                        ),
+                      )
+                    else
+                      Tooltip(
+                        message: l10n.providerDetailPageRefreshMetaTooltip,
+                        child: _TactileIconButton(
+                          icon: Lucide.RefreshCw,
+                          color: cs.onSurface.withValues(alpha: 0.5),
+                          size: 16,
+                          semanticLabel:
+                              l10n.providerDetailPageRefreshMetaTooltip,
+                          haptics: false,
+                          onTap: onRefreshMeta ?? () {},
+                        ),
+                      ),
+                  ],
                   const SizedBox(width: 8),
                   _TactileIconButton(
                     icon: Lucide.Settings2,

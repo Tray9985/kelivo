@@ -3,9 +3,39 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/models/openrouter_model_meta.dart';
+import '../../core/utils/openrouter_model_matcher.dart';
 import '../../icons/lucide_adapter.dart';
 import '../../l10n/app_localizations.dart';
 import '../../shared/widgets/ios_tactile.dart';
+
+/// Resolves an OpenRouter [OpenRouterModelMeta] for [modelId] against [catalog].
+///
+/// Matching rules (delegated to [OpenRouterModelMatcher]):
+/// - Exact match → returns the meta directly.
+/// - Ambiguous match → shows a picker pre-filtered to the candidates.
+/// - No match → shows the full catalog picker for manual selection.
+/// - User dismisses any picker → returns `null` (no-op for the caller).
+Future<OpenRouterModelMeta?> resolveOrMeta(
+  BuildContext context, {
+  required String modelId,
+  required Map<String, OpenRouterModelMeta> catalog,
+}) async {
+  final result = OpenRouterModelMatcher.match(modelId, catalog);
+  switch (result) {
+    case OpenRouterMatchExact(:final meta):
+      return meta;
+    case OpenRouterMatchAmbiguous(:final candidateIds):
+      final chosen = await showOrModelPickerDialog(
+        context,
+        catalog: catalog,
+        candidates: candidateIds,
+      );
+      return chosen == null ? null : catalog[chosen];
+    case OpenRouterMatchNone():
+      final chosen = await showOrModelPickerDialog(context, catalog: catalog);
+      return chosen == null ? null : catalog[chosen];
+  }
+}
 
 /// Shows a dialog asking the user to manually select which OpenRouter catalog
 /// entry corresponds to a given provider model ID.

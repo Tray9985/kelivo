@@ -4670,6 +4670,42 @@ abstract class AppLocalizations {
   /// **'Enable image generation tool'**
   String get modelDetailSheetOpenaiImageGenerationToolDescription;
 
+  /// No description provided for @modelDetailSheetFetchMetaButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch Metadata'**
+  String get modelDetailSheetFetchMetaButton;
+
+  /// No description provided for @modelDetailSheetMetaFetchSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Metadata fetched'**
+  String get modelDetailSheetMetaFetchSuccess;
+
+  /// No description provided for @modelDetailSheetMetaFetchFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to fetch metadata'**
+  String get modelDetailSheetMetaFetchFailed;
+
+  /// No description provided for @providerDetailPageRefreshMetaTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh Metadata'**
+  String get providerDetailPageRefreshMetaTooltip;
+
+  /// No description provided for @providerDetailPageMetaRefreshSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Metadata updated'**
+  String get providerDetailPageMetaRefreshSuccess;
+
+  /// No description provided for @providerDetailPageMetaRefreshNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No metadata found'**
+  String get providerDetailPageMetaRefreshNotFound;
+
   /// No description provided for @modelDetailSheetCancelButton.
   ///
   /// In en, this message translates to:

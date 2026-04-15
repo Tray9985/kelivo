@@ -784,6 +784,9 @@ class _DesktopProviderDetailPaneState
   String? _currentDetectingModel;
   final Set<String> _pendingModels = {};
 
+  // Per-model OR meta refresh state
+  final Set<String> _refreshingMeta = {};
+
   // Connection test state for inline dialog
   // Keep local to this file to avoid cross-file coupling
 
@@ -1847,6 +1850,8 @@ class _DesktopProviderDetailPaneState
                     detectionErrorMessages: _detectionErrorMessages,
                     currentDetectingModel: _currentDetectingModel,
                     pendingModels: _pendingModels,
+                    refreshingMeta: _refreshingMeta,
+                    onRefreshMeta: _fetchMetaForModel,
                   ),
                 ),
             ],
@@ -3736,6 +3741,61 @@ class _DesktopProviderDetailPaneState
       providerKey: widget.providerKey,
     );
     if (res == true && mounted) setState(() {});
+  }
+
+  Future<void> _fetchMetaForModel(String modelId) async {
+    if (_refreshingMeta.contains(modelId) || !mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    setState(() => _refreshingMeta.add(modelId));
+    try {
+      final catalog = await ProviderManager.fetchOpenRouterCatalog();
+      if (!mounted) return;
+      if (catalog.isEmpty) {
+        showAppSnackBar(
+          context,
+          message: l10n.modelDetailSheetMetaFetchFailed,
+          type: NotificationType.error,
+        );
+        return;
+      }
+      final meta = await resolveOrMeta(
+        context,
+        modelId: modelId,
+        catalog: catalog,
+      );
+      if (!mounted) return;
+      if (meta == null) return;
+      final sp = context.read<SettingsProvider>();
+      final old = sp.getProviderConfig(widget.providerKey);
+      final ov = Map<String, dynamic>.from(old.modelOverrides);
+      final existing = ov[modelId];
+      final Map<String, dynamic> entry = existing is Map
+          ? {for (final e in existing.entries) e.key.toString(): e.value}
+          : {};
+      meta.toFullOverrideMap(entry);
+      final orName = meta.name?.trim();
+      if (orName != null && orName.isNotEmpty) entry['name'] = orName;
+      ov[modelId] = entry;
+      await sp.setProviderConfig(
+        widget.providerKey,
+        old.copyWith(modelOverrides: ov),
+      );
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        message: l10n.providerDetailPageMetaRefreshSuccess,
+        type: NotificationType.success,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        message: l10n.modelDetailSheetMetaFetchFailed,
+        type: NotificationType.error,
+      );
+    } finally {
+      if (mounted) setState(() => _refreshingMeta.remove(modelId));
+    }
   }
 
   Future<void> _showTestConnectionDialog(BuildContext context) async {
@@ -5653,6 +5713,8 @@ class _ModelGroupAccordion extends StatefulWidget {
     this.detectionErrorMessages = const {},
     this.currentDetectingModel,
     this.pendingModels = const {},
+    this.refreshingMeta = const {},
+    this.onRefreshMeta,
   });
   final String group;
   final List<String> modelIds;
@@ -5664,6 +5726,8 @@ class _ModelGroupAccordion extends StatefulWidget {
   final Map<String, bool> detectionResults;
   final String? currentDetectingModel;
   final Set<String> pendingModels;
+  final Set<String> refreshingMeta;
+  final ValueChanged<String>? onRefreshMeta;
   @override
   State<_ModelGroupAccordion> createState() => _ModelGroupAccordionState();
 }
@@ -5758,6 +5822,10 @@ class _ModelGroupAccordionState extends State<_ModelGroupAccordion> {
                       detectionResult: widget.detectionResults[id],
                       isDetecting: widget.currentDetectingModel == id,
                       isPending: widget.pendingModels.contains(id),
+                      isRefreshingMeta: widget.refreshingMeta.contains(id),
+                      onRefreshMeta: widget.onRefreshMeta == null
+                          ? null
+                          : () => widget.onRefreshMeta!(id),
                     ),
                 ],
               ),
@@ -5785,6 +5853,8 @@ class _ModelRow extends StatelessWidget {
     this.detectionResult,
     this.isDetecting = false,
     this.isPending = false,
+    this.isRefreshingMeta = false,
+    this.onRefreshMeta,
   });
   final String modelId;
   final String providerKey;
@@ -5795,6 +5865,8 @@ class _ModelRow extends StatelessWidget {
   final bool? detectionResult;
   final bool isDetecting;
   final bool isPending;
+  final bool isRefreshingMeta;
+  final VoidCallback? onRefreshMeta;
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -5907,6 +5979,25 @@ class _ModelRow extends StatelessWidget {
             if (!isSelectionMode) ...[
               ModelCapsulesRow(model: info),
               const SizedBox(width: 8),
+              if (ov?[OpenRouterModelMeta.kContextLength] == null) ...[
+                Tooltip(
+                  message: l10n.providerDetailPageRefreshMetaTooltip,
+                  child: isRefreshingMeta
+                      ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: cs.primary,
+                          ),
+                        )
+                      : _IconBtn(
+                          icon: lucide.Lucide.RefreshCw,
+                          onTap: onRefreshMeta ?? () {},
+                        ),
+                ),
+                const SizedBox(width: 4),
+              ],
               _IconBtn(
                 icon: lucide.Lucide.Settings2,
                 onTap: () async {

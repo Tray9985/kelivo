@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../core/providers/settings_provider.dart';
 import '../../../core/providers/model_provider.dart';
+import '../../../shared/dialogs/openrouter_model_picker_dialog.dart';
 import '../../../core/services/api/builtin_tools.dart';
 import '../../../core/services/model_override_resolver.dart';
 import '../../../core/services/logging/flutter_logger.dart';
@@ -104,6 +105,10 @@ class _ModelDetailSheetState extends State<_ModelDetailSheet>
   Set<Modality>? _cachedChatOutput;
   Set<ModelAbility>? _cachedChatAbilities;
   Set<Modality>? _cachedEmbeddingInput;
+
+  // OpenRouter metadata
+  OpenRouterModelMeta? _fetchedMeta;
+  bool _isFetchingMeta = false;
 
   // Advanced (UI only)
   final List<_HeaderKV> _headers = [];
@@ -506,6 +511,12 @@ class _ModelDetailSheetState extends State<_ModelDetailSheet>
               ),
             ),
             const SizedBox(height: 12),
+            _FetchMetaButton(
+              loading: _isFetchingMeta,
+              onTap: _isFetchingMeta ? null : _fetchMeta,
+              label: l10n.modelDetailSheetFetchMetaButton,
+            ),
+            const SizedBox(height: 12),
             _label(context, l10n.modelDetailSheetModelTypeLabel),
             const SizedBox(height: 6),
             _SegmentedSingle(
@@ -832,6 +843,65 @@ class _ModelDetailSheetState extends State<_ModelDetailSheet>
     }
   }
 
+  Future<void> _fetchMeta() async {
+    if (_isFetchingMeta) return;
+    final l10n = AppLocalizations.of(context)!;
+    final modelId = _idCtrl.text.trim();
+    if (modelId.length < 2) {
+      showAppSnackBar(
+        context,
+        message: l10n.modelDetailSheetInvalidIdError,
+        type: NotificationType.warning,
+      );
+      return;
+    }
+    setState(() => _isFetchingMeta = true);
+    try {
+      final catalog = await ProviderManager.fetchOpenRouterCatalog();
+      if (!mounted) return;
+      if (catalog.isEmpty) {
+        showAppSnackBar(
+          context,
+          message: l10n.modelDetailSheetMetaFetchFailed,
+          type: NotificationType.error,
+        );
+        return;
+      }
+      final meta = await resolveOrMeta(
+        context,
+        modelId: modelId,
+        catalog: catalog,
+      );
+      if (!mounted) return;
+      if (meta == null) return;
+      setState(() {
+        _fetchedMeta = meta;
+        final orName = meta.name?.trim();
+        if (orName != null && orName.isNotEmpty) {
+          _nameCtrl.text = orName;
+          _nameEdited = true;
+        }
+        if (meta.supportsTools) _abilities.add(ModelAbility.tool);
+        if (meta.supportsReasoning) _abilities.add(ModelAbility.reasoning);
+        if (meta.supportsVision) _input.add(Modality.image);
+      });
+      showAppSnackBar(
+        context,
+        message: l10n.modelDetailSheetMetaFetchSuccess,
+        type: NotificationType.success,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        message: l10n.modelDetailSheetMetaFetchFailed,
+        type: NotificationType.error,
+      );
+    } finally {
+      if (mounted) setState(() => _isFetchingMeta = false);
+    }
+  }
+
   Future<void> _save() async {
     final settings = context.read<SettingsProvider>();
     final old = settings.getProviderConfig(widget.providerKey);
@@ -911,6 +981,19 @@ class _ModelDetailSheetState extends State<_ModelDetailSheet>
       'body': bodies,
       if (!isEmbedding && builtInTools.isNotEmpty) 'builtInTools': builtInTools,
     };
+    // Inject OR meta keys fetched via button (contextLength, maxCompletionTokens).
+    // Abilities/input are already reflected in the form state above.
+    final fetchedMeta = _fetchedMeta;
+    if (fetchedMeta != null) {
+      final m = ov[key] as Map<String, dynamic>;
+      if (fetchedMeta.contextLength != null) {
+        m[OpenRouterModelMeta.kContextLength] = fetchedMeta.contextLength;
+      }
+      if (fetchedMeta.maxCompletionTokens != null) {
+        m[OpenRouterModelMeta.kMaxCompletionTokens] =
+            fetchedMeta.maxCompletionTokens;
+      }
+    }
 
     // Apply updates to provider config
     try {
@@ -1580,6 +1663,58 @@ class _SegTabBar extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _FetchMetaButton extends StatelessWidget {
+  const _FetchMetaButton({
+    required this.label,
+    required this.loading,
+    this.onTap,
+  });
+
+  final String label;
+  final bool loading;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return IosCardPress(
+      onTap: onTap,
+      child: Container(
+        height: 44,
+        decoration: BoxDecoration(
+          border: Border.all(color: cs.primary.withValues(alpha: 0.35)),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        alignment: Alignment.center,
+        child: loading
+            ? SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: cs.primary,
+                ),
+              )
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Lucide.Sparkles, size: 16, color: cs.primary),
+                  const SizedBox(width: 6),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: cs.primary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+      ),
     );
   }
 }
