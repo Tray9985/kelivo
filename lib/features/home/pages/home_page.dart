@@ -787,6 +787,7 @@ class _HomePageState extends State<HomePage>
         truncCollapsedIndex: _computeTruncCollapsedIndex(),
         reasoning: _controller.reasoning,
         reasoningSegments: _controller.reasoningSegments,
+        contentSplits: _controller.contentSplits,
         toolParts: _controller.toolParts,
         translations: _buildTranslationUiStates(),
         selecting: _controller.selecting,
@@ -805,6 +806,12 @@ class _HomePageState extends State<HomePage>
         onEditMessage: (message) => _controller.editMessage(message),
         onDeleteMessage: (message, byGroup) =>
             _handleDeleteMessage(context, message, byGroup),
+        onDeleteAllVersions: (message, byGroup) => _handleDeleteMessage(
+          context,
+          message,
+          byGroup,
+          deleteAllVersions: true,
+        ),
         onForkConversation: (message) => _controller.forkConversation(message),
         onShareMessage: (index, messages) =>
             _controller.shareMessage(index, messages),
@@ -1222,14 +1229,23 @@ class _HomePageState extends State<HomePage>
   Future<void> _handleDeleteMessage(
     BuildContext context,
     ChatMessage message,
-    Map<String, List<ChatMessage>> byGroup,
-  ) async {
+    Map<String, List<ChatMessage>> byGroup, {
+    bool deleteAllVersions = false,
+  }) async {
     final l10n = AppLocalizations.of(context)!;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(l10n.homePageDeleteMessage),
-        content: Text(l10n.homePageDeleteMessageConfirm),
+        title: Text(
+          deleteAllVersions
+              ? l10n.homePageDeleteAllVersions
+              : l10n.homePageDeleteMessage,
+        ),
+        content: Text(
+          deleteAllVersions
+              ? l10n.homePageDeleteAllVersionsConfirm
+              : l10n.homePageDeleteMessageConfirm,
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -1246,6 +1262,14 @@ class _HomePageState extends State<HomePage>
       ),
     );
     if (confirm != true) return;
+
+    if (deleteAllVersions) {
+      await _controller.deleteAllMessageVersions(
+        message: message,
+        byGroup: byGroup,
+      );
+      return;
+    }
 
     await _controller.deleteMessage(message: message, byGroup: byGroup);
   }

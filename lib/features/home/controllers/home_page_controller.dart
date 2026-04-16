@@ -217,6 +217,8 @@ class HomePageController extends ChangeNotifier {
       _streamController.reasoning;
   Map<String, List<stream_ctrl.ReasoningSegmentData>> get reasoningSegments =>
       _streamController.reasoningSegments;
+  Map<String, stream_ctrl.ContentSplitData> get contentSplits =>
+      _streamController.contentSplits;
   Map<String, List<ToolUIPart>> get toolParts => _streamController.toolParts;
 
   /// Lightweight notifier for streaming content updates.
@@ -742,6 +744,21 @@ class HomePageController extends ChangeNotifier {
   }) async {
     _translations.remove(message.id);
     await _viewModel.deleteMessage(message: message, byGroup: byGroup);
+    notifyListeners();
+  }
+
+  Future<void> deleteAllMessageVersions({
+    required ChatMessage message,
+    required Map<String, List<ChatMessage>> byGroup,
+  }) async {
+    final gid = (message.groupId ?? message.id);
+    for (final version in byGroup[gid] ?? const <ChatMessage>[]) {
+      _translations.remove(version.id);
+    }
+    await _viewModel.deleteAllMessageVersions(
+      message: message,
+      byGroup: byGroup,
+    );
     notifyListeners();
   }
 

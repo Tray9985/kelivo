@@ -104,6 +104,10 @@ class _DisplaySettingsBody extends StatelessWidget {
                   _RowDivider(),
                   _ToggleRowAutoCollapseThinking(),
                   _RowDivider(),
+                  _ToggleRowCollapseThinkingSteps(),
+                  _RowDivider(),
+                  _ToggleRowShowToolResultSummary(),
+                  _RowDivider(),
                   _ToggleRowShowUpdates(),
                   _RowDivider(),
                   _ToggleRowMsgNavButtons(),
@@ -2164,6 +2168,36 @@ class _ToggleRowAutoCollapseThinking extends StatelessWidget {
       value: sp.autoCollapseThinking,
       onChanged: (v) =>
           context.read<SettingsProvider>().setAutoCollapseThinking(v),
+    );
+  }
+}
+
+class _ToggleRowCollapseThinkingSteps extends StatelessWidget {
+  const _ToggleRowCollapseThinkingSteps();
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final sp = context.watch<SettingsProvider>();
+    return _ToggleRow(
+      label: l10n.displaySettingsPageCollapseThinkingStepsTitle,
+      value: sp.collapseThinkingSteps,
+      onChanged: (v) =>
+          context.read<SettingsProvider>().setCollapseThinkingSteps(v),
+    );
+  }
+}
+
+class _ToggleRowShowToolResultSummary extends StatelessWidget {
+  const _ToggleRowShowToolResultSummary();
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final sp = context.watch<SettingsProvider>();
+    return _ToggleRow(
+      label: l10n.displaySettingsPageShowToolResultSummaryTitle,
+      value: sp.showToolResultSummary,
+      onChanged: (v) =>
+          context.read<SettingsProvider>().setShowToolResultSummary(v),
     );
   }
 }

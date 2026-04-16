@@ -25,6 +25,11 @@ typedef OnDeleteMessage =
       ChatMessage message,
       Map<String, List<ChatMessage>> byGroup,
     );
+typedef OnDeleteAllVersions =
+    Future<void> Function(
+      ChatMessage message,
+      Map<String, List<ChatMessage>> byGroup,
+    );
 typedef OnForkConversation = Future<void> Function(ChatMessage message);
 typedef OnShareMessage =
     void Function(int messageIndex, List<ChatMessage> messages);
@@ -73,6 +78,7 @@ class MessageListView extends StatelessWidget {
     this.truncCollapsedIndex = -1,
     required this.reasoning,
     required this.reasoningSegments,
+    required this.contentSplits,
     required this.toolParts,
     required this.translations,
     required this.selecting,
@@ -90,6 +96,7 @@ class MessageListView extends StatelessWidget {
     this.onTranslateMessage,
     this.onEditMessage,
     this.onDeleteMessage,
+    this.onDeleteAllVersions,
     this.onForkConversation,
     this.onShareMessage,
     this.onSpeakMessage,
@@ -117,6 +124,7 @@ class MessageListView extends StatelessWidget {
 
   final Map<String, stream_ctrl.ReasoningData> reasoning;
   final Map<String, List<stream_ctrl.ReasoningSegmentData>> reasoningSegments;
+  final Map<String, stream_ctrl.ContentSplitData> contentSplits;
   final Map<String, List<ToolUIPart>> toolParts;
   final Map<String, TranslationUiState> translations;
   final bool selecting;
@@ -145,6 +153,7 @@ class MessageListView extends StatelessWidget {
   final OnTranslateMessage? onTranslateMessage;
   final OnEditMessage? onEditMessage;
   final OnDeleteMessage? onDeleteMessage;
+  final OnDeleteAllVersions? onDeleteAllVersions;
   final OnForkConversation? onForkConversation;
   final OnShareMessage? onShareMessage;
   final OnSpeakMessage? onSpeakMessage;
@@ -580,9 +589,15 @@ class MessageListView extends StatelessWidget {
           ? () => onDeleteMessage?.call(message, byGroup)
           : null,
       onMore: () async {
-        final action = await showMessageMoreSheet(context, message);
-        if (action == MessageMoreAction.delete) {
+        final action = await showMessageMoreSheet(
+          context,
+          message,
+          canDeleteAllVersions: total > 1,
+        );
+        if (action == MessageMoreAction.deleteCurrentVersion) {
           await onDeleteMessage?.call(message, byGroup);
+        } else if (action == MessageMoreAction.deleteAllVersions) {
+          await onDeleteAllVersions?.call(message, byGroup);
         } else if (action == MessageMoreAction.edit) {
           onEditMessage?.call(message);
         } else if (action == MessageMoreAction.fork) {
@@ -592,6 +607,15 @@ class MessageListView extends StatelessWidget {
         }
       },
       toolParts: message.role == 'assistant' ? toolParts[message.id] : null,
+      contentSplitOffsets: message.role == 'assistant'
+          ? contentSplits[message.id]?.offsets
+          : null,
+      reasoningCountAtSplit: message.role == 'assistant'
+          ? contentSplits[message.id]?.reasoningCounts
+          : null,
+      toolCountAtSplit: message.role == 'assistant'
+          ? contentSplits[message.id]?.toolCounts
+          : null,
       reasoningSegments: message.role == 'assistant'
           ? (() {
               final segments = reasoningSegments[message.id];
