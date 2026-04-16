@@ -48,6 +48,25 @@ class ModelTagWrap extends StatelessWidget {
     );
   }
 
+  static String _fmtCtxSize(int n) {
+    if (n >= 1000000) return '${(n / 1000000).round()}M';
+    if (n >= 1000) return '${(n / 1000).round()}K';
+    return '$n';
+  }
+
+  // Returns a base color for the context-length badge based on tier:
+  //   < 32K  → orange (limited)
+  //   < 200K → primary/blue (standard)
+  //   < 1M   → teal (extended)
+  //  >= 1M   → green (massive)
+  static Color _ctxColor(BuildContext context, int n) {
+    final cs = Theme.of(context).colorScheme;
+    if (n >= 1000000) return const Color(0xFF4CAF50); // green
+    if (n >= 200000) return const Color(0xFF26A69A); // teal
+    if (n >= 32000) return cs.primary;
+    return const Color(0xFFFF9800); // orange
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -168,6 +187,44 @@ class ModelTagWrap extends StatelessWidget {
         ),
       ),
     );
+
+    if (model.contextLength != null && model.contextLength! > 0) {
+      final ctxLabel = _fmtCtxSize(model.contextLength!);
+      final ctxColor = _ctxColor(context, model.contextLength!);
+      chips.add(
+        Tooltip(
+          message: ctxLabel,
+          child: Semantics(
+            label: ctxLabel,
+            child: ExcludeSemantics(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? ctxColor.withValues(alpha: 0.30)
+                      : ctxColor.withValues(alpha: 0.22),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: ctxColor.withValues(alpha: 0.55),
+                    width: 0.5,
+                  ),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                child: Text(
+                  ctxLabel,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark
+                        ? ctxColor.withValues(alpha: 0.95)
+                        : ctxColor.withValues(alpha: 0.90),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     if (!isEmbedding) {
       final uniqueAbilities = LinkedHashSet<ModelAbility>.from(model.abilities);
@@ -310,6 +367,45 @@ class ModelCapsulesRow extends StatelessWidget {
     }
 
     final caps = <Widget>[];
+
+    if (model.contextLength != null && model.contextLength! > 0) {
+      final ctxLabel = ModelTagWrap._fmtCtxSize(model.contextLength!);
+      final ctxColor = ModelTagWrap._ctxColor(context, model.contextLength!);
+      caps.add(
+        Tooltip(
+          message: ctxLabel,
+          child: Semantics(
+            label: ctxLabel,
+            child: ExcludeSemantics(
+              child: Container(
+                padding: pillPadding,
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? ctxColor.withValues(alpha: 0.20)
+                      : ctxColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: ctxColor.withValues(alpha: 0.30),
+                    width: 0.5,
+                  ),
+                ),
+                child: Text(
+                  ctxLabel,
+                  style: TextStyle(
+                    fontSize: iconSize,
+                    height: 1.0,
+                    color: isDark
+                        ? ctxColor.withValues(alpha: 0.9)
+                        : ctxColor.withValues(alpha: 0.85),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     if (model.input.contains(Modality.image)) {
       caps.add(

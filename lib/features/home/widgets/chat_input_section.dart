@@ -133,7 +133,6 @@ class ChatInputSection extends StatelessWidget {
     // Compute context usage ring data.
     final (contextUsageFraction, contextUsageTooltip) = _computeContextUsage(
       settings,
-      a,
       pk,
       mid,
     );
@@ -219,10 +218,14 @@ class ChatInputSection extends StatelessWidget {
   }
 
   /// Returns (fraction, tooltipLabel) for the context usage ring.
-  /// fraction is null when orContextLength is unknown.
+  ///
+  /// Uses the most recent completed AI response's [totalTokens] as the context
+  /// size. This is the exact value reported by the API and covers everything
+  /// sent in that turn: system prompt, files, images, and all history.
+  /// Returns (null, null) when no model context length is configured or when
+  /// the conversation has no completed AI response with token data yet.
   (double?, String?) _computeContextUsage(
     SettingsProvider settings,
-    Assistant? assistant,
     String? providerKey,
     String? modelId,
   ) {
@@ -234,28 +237,20 @@ class ChatInputSection extends StatelessWidget {
         overrides?[OpenRouterModelMeta.kContextLength] as int?;
     if (contextLength == null || contextLength <= 0) return (null, null);
 
-    // Apply Phase 1 count-based trim (mirror message_builder_service logic).
-    var msgs = messages;
-    if ((assistant?.limitContextMessages ?? true) &&
-        (assistant?.contextMessageSize ?? 0) > 0) {
-      final keep = (assistant!.contextMessageSize).clamp(
-        Assistant.minContextMessageSize,
-        Assistant.maxContextMessageSize,
-      );
-      if (msgs.length > keep) {
-        msgs = msgs.sublist(msgs.length - keep);
+    ChatMessage? lastAssistant;
+    for (int i = messages.length - 1; i >= 0; i--) {
+      final m = messages[i];
+      if (m.role == 'assistant' && !m.isStreaming && (m.totalTokens ?? 0) > 0) {
+        lastAssistant = m;
+        break;
       }
     }
+    if (lastAssistant == null) return (null, null);
 
-    // Estimate tokens: ⌈chars / 4⌉ + 4 per message (same formula as builder).
-    int totalTokens = 0;
-    for (final msg in msgs) {
-      totalTokens += (msg.content.length / 4).ceil() + 4;
-    }
-
-    final fraction = (totalTokens / contextLength).clamp(0.0, 1.0);
+    final usedTokens = lastAssistant.totalTokens!;
+    final fraction = (usedTokens / contextLength).clamp(0.0, 1.0);
     final tooltip =
-        '${_formatTokens(totalTokens)} / ${_formatTokens(contextLength)}';
+        '${_formatTokens(usedTokens)} / ${_formatTokens(contextLength)}';
     return (fraction, tooltip);
   }
 

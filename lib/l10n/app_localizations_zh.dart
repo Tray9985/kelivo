@@ -1689,6 +1689,9 @@ class AppLocalizationsZh extends AppLocalizations {
       '将 \$...\$ 之间的内容按行内数学公式渲染';
 
   @override
+  String get displaySettingsPageWidescreenModeTitle => '宽屏布局';
+
+  @override
   String get displaySettingsPageEnableMathTitle => '启用数学公式渲染';
 
   @override
@@ -4313,7 +4316,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String tokenDetailTotalTokens(int count) {
-    return '$count tokens';
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString tokens';
   }
 
   @override
@@ -6016,6 +6023,9 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   @override
   String get displaySettingsPageEnableDollarLatexSubtitle =>
       '将 \$...\$ 之间的内容按行内数学公式渲染';
+
+  @override
+  String get displaySettingsPageWidescreenModeTitle => '宽屏布局';
 
   @override
   String get displaySettingsPageEnableMathTitle => '启用数学公式渲染';
@@ -8590,7 +8600,11 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String tokenDetailTotalTokens(int count) {
-    return '$count tokens';
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString tokens';
   }
 
   @override
@@ -10292,6 +10306,9 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   @override
   String get displaySettingsPageEnableDollarLatexSubtitle =>
       '將 \$...\$ 之間的內容以行內數學公式渲染';
+
+  @override
+  String get displaySettingsPageWidescreenModeTitle => '寬屏佈局';
 
   @override
   String get displaySettingsPageEnableMathTitle => '啟用數學公式渲染';
@@ -12913,7 +12930,11 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String tokenDetailTotalTokens(int count) {
-    return '$count tokens';
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString tokens';
   }
 
   @override

@@ -3317,6 +3317,12 @@ abstract class AppLocalizations {
   /// **'Render inline math inside \$...\$'**
   String get displaySettingsPageEnableDollarLatexSubtitle;
 
+  /// No description provided for @displaySettingsPageWidescreenModeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Widescreen Layout'**
+  String get displaySettingsPageWidescreenModeTitle;
+
   /// No description provided for @displaySettingsPageEnableMathTitle.
   ///
   /// In en, this message translates to:

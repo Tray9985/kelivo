@@ -768,6 +768,7 @@
   },
   "displaySettingsPageEnableDollarLatexTitle": "Inline $...$ Rendering",
   "displaySettingsPageEnableDollarLatexSubtitle": "Render inline math inside $...$",
+  "displaySettingsPageWidescreenModeTitle": "Widescreen Layout",
   "displaySettingsPageEnableMathTitle": "Math Formula Rendering",
   "displaySettingsPageEnableMathSubtitle": "Render LaTeX math (inline and block)",
   "displaySettingsPageEnableUserMarkdownTitle": "Render user messages with Markdown",
@@ -1885,7 +1886,7 @@
   "tokenDetailTotalTokens": "{count} tokens",
   "@tokenDetailTotalTokens": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {"type": "int", "format": "decimalPattern"}
     }
   },
   "orModelPickerTitle": "Select OpenRouter Model",

@@ -1421,9 +1421,8 @@ class ChatItemDisplaySettingsPage extends StatelessWidget {
                 icon: Lucide.MessageCircle,
                 label: l10n.displaySettingsPageShowUserNameTitle,
                 value: sp.showUserName,
-                onChanged: (v) => context
-                    .read<SettingsProvider>()
-                    .setShowUserName(v),
+                onChanged: (v) =>
+                    context.read<SettingsProvider>().setShowUserName(v),
               ),
               _iosDivider(context),
               _iosSwitchRow(
@@ -1431,9 +1430,8 @@ class ChatItemDisplaySettingsPage extends StatelessWidget {
                 icon: Lucide.clock,
                 label: l10n.displaySettingsPageShowUserTimestampTitle,
                 value: sp.showUserTimestamp,
-                onChanged: (v) => context
-                    .read<SettingsProvider>()
-                    .setShowUserTimestamp(v),
+                onChanged: (v) =>
+                    context.read<SettingsProvider>().setShowUserTimestamp(v),
               ),
               _iosDivider(context),
               _iosSwitchRow(
@@ -1470,9 +1468,8 @@ class ChatItemDisplaySettingsPage extends StatelessWidget {
                 icon: Lucide.MessageSquare,
                 label: l10n.displaySettingsPageShowModelNameTitle,
                 value: sp.showModelName,
-                onChanged: (v) => context
-                    .read<SettingsProvider>()
-                    .setShowModelName(v),
+                onChanged: (v) =>
+                    context.read<SettingsProvider>().setShowModelName(v),
               ),
               _iosDivider(context),
               _iosSwitchRow(
@@ -1480,9 +1477,8 @@ class ChatItemDisplaySettingsPage extends StatelessWidget {
                 icon: Lucide.clock,
                 label: l10n.displaySettingsPageShowModelTimestampTitle,
                 value: sp.showModelTimestamp,
-                onChanged: (v) => context
-                    .read<SettingsProvider>()
-                    .setShowModelTimestamp(v),
+                onChanged: (v) =>
+                    context.read<SettingsProvider>().setShowModelTimestamp(v),
               ),
               _iosDivider(context),
               _iosSwitchRow(
@@ -1536,6 +1532,15 @@ class RenderingSettingsPage extends StatelessWidget {
         children: [
           _iosSectionCard(
             children: [
+              _iosSwitchRow(
+                context,
+                icon: Lucide.Maximize2,
+                label: l10n.displaySettingsPageWidescreenModeTitle,
+                value: sp.widescreenMode,
+                onChanged: (v) =>
+                    context.read<SettingsProvider>().setWidescreenMode(v),
+              ),
+              _iosDivider(context),
               _iosSwitchRow(
                 context,
                 icon: Lucide.Hash,

@@ -205,6 +205,7 @@ class HomePageController extends ChangeNotifier {
   // Delegate to ChatController
   Conversation? get currentConversation => _chatController.currentConversation;
   List<ChatMessage> get messages => _chatController.messages;
+  List<ChatMessage> get collapsedMessages => _chatController.collapsedMessages;
   Map<String, int> get versionSelections => _chatController.versionSelections;
   Set<String> get loadingConversationIds =>
       _chatController.loadingConversationIds;

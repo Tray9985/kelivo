@@ -93,7 +93,12 @@ fvm flutter build macos --release
 - 同步字段：`orContextLength`（上下文长度）、`abilities`（`tools`、`reasoning`）、`inputModalities`（`image` 等）
 - 支持单模型手动拉取（模型选择弹窗）和批量拉取（供应商详情页）
 - 已有的手动覆盖配置不被自动同步覆盖，采用合并策略（`toFullOverrideMap`）
-- OpenRouter 模型选择弹窗显示上下文长度（K/M 格式）和能力胶囊（工具调用、推理）
+- `ModelInfo` 携带 `contextLength` 字段，由 `ModelOverrideResolver.applyModelOverride` 从 `orContextLength` 写入
+- **模型列表上下文大小徽章**：所有模型列表（移动端 `ModelTagWrap`、桌面端 `ModelCapsulesRow`）在能力徽章左侧显示上下文大小徽章（K/M 格式），按大小分段配色：
+  - `< 32K`：橙色
+  - `32K–200K`：主题 Primary 蓝
+  - `200K–1M`：青绿色
+  - `≥ 1M`：绿色
 
 ---
 
@@ -147,8 +152,34 @@ fvm flutter build macos --release
 
 - 输入栏底部右侧，发送按钮左侧，固定显示一个 18px 圆形进度环
 - 仅在当前模型存在 `orContextLength`（OpenRouter 元数据）时显示，否则隐藏
-- **进度计算**：先对当前消息列表应用 Phase 1 条数裁剪（与发送时一致），再以 `⌈chars/4⌉+4` 估算 token，除以 `orContextLength` 得到比例
+- **进度计算**：取最后一条已完成的 AI 消息的 `totalTokens`（= `promptTokens + completionTokens`，API 上报的真实累计值），除以 `orContextLength` 得到比例；消息列表使用 `collapsedMessages`（仅含各消息当前选中版本，与发送时一致）
 - **三段配色**：< 70% 使用低透明度前景色；70–90% 橙色；≥ 90% 错误红色
-- **Tooltip**：显示「已用 XK / YM」格式（如 `128K / 1M`），无"估算"字样
+- **Tooltip**：显示「已用 XK / YM」格式（如 `128K / 1M`）
 - **更新时机**：每次 LLM 回答后消息列表变化自动刷新；切换模型或助手时同步更新
 - 移动端与平板/桌面端均显示，不进入 overflow 菜单
+
+---
+
+## 18. 桌面端引用角标鼠标指针
+
+- Markdown 渲染中的引用角标（citation badge）整块区域显示手型指针（`SystemMouseCursors.click`）
+- 修复：角标内的数字文字原本处于外层 `SelectionArea` 内，鼠标移到数字上会变成文字选中指针
+- 实现：在 `MouseRegion`（cursor=click）内嵌套 `SelectionContainer.disabled`，阻断外层 `SelectionArea` 对角标内容的接管，再内嵌 `GestureDetector` 处理点击事件
+
+---
+
+## 19. Token 计数千分符
+
+- 消息列表右下角的 token 计数显示增加千分符（如 `206,673`）
+- 实现：在 ARB 模板（`app_en.arb`）的 `@tokenDetailTotalTokens` 占位符 `count` 上添加 `"format": "decimalPattern"`，由 `flutter gen-l10n` 生成 `NumberFormat.decimalPattern` 格式化逻辑
+- 其余三个 ARB 文件无需额外 `@` 元数据，格式化由模板驱动
+
+---
+
+## 20. 宽屏布局模式
+
+- 设置项：「宽屏布局」，可在移动端「显示」设置页和桌面端「显示」设置面板中切换，持久化至 SharedPreferences（key: `display_widescreen_mode_v1`）
+- 开启后，聊天消息列表与输入栏的最大宽度从 860px 扩展至 1290px（860 × 1.5）
+- 常量定义在 `ChatLayoutConstants.maxWidescreenWidth = maxContentWidth * 1.5`
+- 关闭侧边栏时两侧留白明显减少；侧边栏展开时因可用宽度受限，效果自然缩减
+- 默认关闭，不影响存量用户布局

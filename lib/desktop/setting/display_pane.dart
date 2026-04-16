@@ -81,6 +81,8 @@ class _DisplaySettingsBody extends StatelessWidget {
               _SettingsCard(
                 title: l10n.displaySettingsPageRenderingSettingsTitle,
                 children: const [
+                  _ToggleRowWidescreenMode(),
+                  _RowDivider(),
                   _ToggleRowDollarLatex(),
                   _RowDivider(),
                   _ToggleRowMathRendering(),
@@ -1940,8 +1942,7 @@ class _ToggleRowShowUserName extends StatelessWidget {
     return _ToggleRow(
       label: l10n.displaySettingsPageShowUserNameTitle,
       value: sp.showUserName,
-      onChanged: (v) =>
-          context.read<SettingsProvider>().setShowUserName(v),
+      onChanged: (v) => context.read<SettingsProvider>().setShowUserName(v),
     );
   }
 }
@@ -1999,8 +2000,7 @@ class _ToggleRowShowModelName extends StatelessWidget {
     return _ToggleRow(
       label: l10n.displaySettingsPageShowModelNameTitle,
       value: sp.showModelName,
-      onChanged: (v) =>
-          context.read<SettingsProvider>().setShowModelName(v),
+      onChanged: (v) => context.read<SettingsProvider>().setShowModelName(v),
     );
   }
 }
@@ -2045,6 +2045,20 @@ class _ToggleRowShowProviderInCapsule extends StatelessWidget {
       value: sp.showProviderInModelCapsule,
       onChanged: (v) =>
           context.read<SettingsProvider>().setShowProviderInModelCapsule(v),
+    );
+  }
+}
+
+class _ToggleRowWidescreenMode extends StatelessWidget {
+  const _ToggleRowWidescreenMode();
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final sp = context.watch<SettingsProvider>();
+    return _ToggleRow(
+      label: l10n.displaySettingsPageWidescreenModeTitle,
+      value: sp.widescreenMode,
+      onChanged: (v) => context.read<SettingsProvider>().setWidescreenMode(v),
     );
   }
 }

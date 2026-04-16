@@ -129,6 +129,7 @@ class SettingsProvider extends ChangeNotifier {
       'display_auto_scroll_idle_seconds_v1';
   static const String _displayChatBackgroundMaskStrengthKey =
       'display_chat_background_mask_strength_v1';
+  static const String _displayWidescreenModeKey = 'display_widescreen_mode_v1';
   static const String _displayEnableDollarLatexKey =
       'display_enable_dollar_latex_v1';
   static const String _displayEnableMathRenderingKey =
@@ -813,6 +814,7 @@ class SettingsProvider extends ChangeNotifier {
     } else {
       _usePureBackground = pureBgPref;
     }
+    _widescreenMode = prefs.getBool(_displayWidescreenModeKey) ?? false;
     // display: markdown/math rendering
     _enableDollarLatex = prefs.getBool(_displayEnableDollarLatexKey) ?? true;
     _enableMathRendering =
@@ -2883,6 +2885,17 @@ DO NOT GIVE ANSWERS OR DO HOMEWORK FOR THE USER. If the user asks a math or logi
     );
   }
 
+  // Display: widescreen layout (removes max-width cap on chat content)
+  bool _widescreenMode = false;
+  bool get widescreenMode => _widescreenMode;
+  Future<void> setWidescreenMode(bool v) async {
+    if (_widescreenMode == v) return;
+    _widescreenMode = v;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_displayWidescreenModeKey, v);
+  }
+
   // Display: inline $...$ LaTeX rendering
   bool _enableDollarLatex = true;
   bool get enableDollarLatex => _enableDollarLatex;
@@ -3339,6 +3352,7 @@ DO NOT GIVE ANSWERS OR DO HOMEWORK FOR THE USER. If the user asks a math or logi
     copy._chatFontScale = _chatFontScale;
     copy._autoScrollEnabled = _autoScrollEnabled;
     copy._autoScrollIdleSeconds = _autoScrollIdleSeconds;
+    copy._widescreenMode = _widescreenMode;
     copy._enableDollarLatex = _enableDollarLatex;
     copy._enableMathRendering = _enableMathRendering;
     copy._enableUserMarkdown = _enableUserMarkdown;

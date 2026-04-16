@@ -5,4 +5,7 @@ class ChatLayoutConstants {
 
   /// Max width for the chat input bar area.
   static const double maxInputWidth = 860.0;
+
+  /// Max width used in widescreen mode (50% wider than the default).
+  static const double maxWidescreenWidth = maxContentWidth * 1.5; // 1290
 }

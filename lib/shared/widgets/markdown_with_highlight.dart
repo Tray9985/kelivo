@@ -230,27 +230,32 @@ class MarkdownWithCodeHighlight extends StatelessWidget {
         // Superscript citation badge shared builder
         Widget citationBadge(String displayText, VoidCallback onTap) {
           return UnconstrainedBox(
-            child: GestureDetector(
-              onTap: onTap,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 2),
-                child: Transform.translate(
-                  offset: const Offset(0, -4),
-                  child: Container(
-                    constraints: const BoxConstraints(minWidth: 14),
-                    height: 14,
-                    padding: const EdgeInsets.symmetric(horizontal: 3),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: cs.primary.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(7),
-                    ),
-                    child: Text(
-                      displayText,
-                      style: TextStyle(
-                        fontSize: 9,
-                        height: 1.0,
-                        color: cs.primary,
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: SelectionContainer.disabled(
+                child: GestureDetector(
+                  onTap: onTap,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 2),
+                    child: Transform.translate(
+                      offset: const Offset(0, -4),
+                      child: Container(
+                        constraints: const BoxConstraints(minWidth: 14),
+                        height: 14,
+                        padding: const EdgeInsets.symmetric(horizontal: 3),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: cs.primary.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(7),
+                        ),
+                        child: Text(
+                          displayText,
+                          style: TextStyle(
+                            fontSize: 9,
+                            height: 1.0,
+                            color: cs.primary,
+                          ),
+                        ),
                       ),
                     ),
                   ),

@@ -1735,6 +1735,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Render inline math inside \$...\$';
 
   @override
+  String get displaySettingsPageWidescreenModeTitle => 'Widescreen Layout';
+
+  @override
   String get displaySettingsPageEnableMathTitle => 'Math Formula Rendering';
 
   @override
@@ -4472,7 +4475,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String tokenDetailTotalTokens(int count) {
-    return '$count tokens';
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString tokens';
   }
 
   @override

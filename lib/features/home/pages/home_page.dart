@@ -576,53 +576,63 @@ class _HomePageState extends State<HomePage>
                           .fadeIn(duration: 200.ms, curve: Curves.easeOutCubic),
                 ),
               ),
-              if (_controller.selecting)
-                Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      maxWidth: ChatLayoutConstants.maxInputWidth,
-                    ),
-                    child: ChatSelectionExportBar(
-                      key: _selectionExportBarKey,
-                      onExportMarkdown: _controller.exportSelectedAsMarkdown,
-                      onExportTxt: _controller.exportSelectedAsTxt,
-                      onExportImage: _controller.exportSelectedAsImage,
-                      showThinkingTools: _controller.showThinkingTools,
-                      showThinkingContent: _controller.showThinkingContent,
-                      onToggleThinkingTools: _controller.toggleThinkingTools,
-                      onToggleThinkingContent:
-                          _controller.toggleThinkingContent,
-                    ),
-                  ),
-                )
-              else
-                NotificationListener<SizeChangedLayoutNotification>(
-                  onNotification: (n) {
-                    WidgetsBinding.instance.addPostFrameCallback(
-                      (_) => _controller.measureInputBar(),
+              Builder(
+                builder: (context) {
+                  final widescreen = context
+                      .watch<SettingsProvider>()
+                      .widescreenMode;
+                  final inputMaxWidth = widescreen
+                      ? ChatLayoutConstants.maxWidescreenWidth
+                      : ChatLayoutConstants.maxInputWidth;
+                  if (_controller.selecting) {
+                    return Center(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: inputMaxWidth),
+                        child: ChatSelectionExportBar(
+                          key: _selectionExportBarKey,
+                          onExportMarkdown:
+                              _controller.exportSelectedAsMarkdown,
+                          onExportTxt: _controller.exportSelectedAsTxt,
+                          onExportImage: _controller.exportSelectedAsImage,
+                          showThinkingTools: _controller.showThinkingTools,
+                          showThinkingContent: _controller.showThinkingContent,
+                          onToggleThinkingTools:
+                              _controller.toggleThinkingTools,
+                          onToggleThinkingContent:
+                              _controller.toggleThinkingContent,
+                        ),
+                      ),
                     );
-                    return false;
-                  },
-                  child: SizeChangedLayoutNotifier(
-                    child: Builder(
-                      builder: (context) {
-                        Widget input = _buildChatInputBar(
-                          context,
-                          isTablet: true,
-                        );
-                        input = Center(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(
-                              maxWidth: ChatLayoutConstants.maxInputWidth,
+                  }
+                  return NotificationListener<SizeChangedLayoutNotification>(
+                    onNotification: (n) {
+                      WidgetsBinding.instance.addPostFrameCallback(
+                        (_) => _controller.measureInputBar(),
+                      );
+                      return false;
+                    },
+                    child: SizeChangedLayoutNotifier(
+                      child: Builder(
+                        builder: (context) {
+                          Widget input = _buildChatInputBar(
+                            context,
+                            isTablet: true,
+                          );
+                          input = Center(
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxWidth: inputMaxWidth,
+                              ),
+                              child: input,
                             ),
-                            child: input,
-                          ),
-                        );
-                        return input;
-                      },
+                          );
+                          return input;
+                        },
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
+              ),
             ],
           ),
         ),
@@ -914,7 +924,7 @@ class _HomePageState extends State<HomePage>
       onToggleLearningMode: _openInstructionInjectionPopover,
       onOpenWorldBook: _openWorldBookPopover,
       onLongPressLearning: _showLearningPromptSheet,
-      messages: _controller.messages,
+      messages: _controller.collapsedMessages,
       onClearContext: _controller.clearContext,
       onCompressContext: _handleDesktopCompressContext,
     );
