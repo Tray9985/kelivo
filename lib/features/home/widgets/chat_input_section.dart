@@ -221,9 +221,10 @@ class ChatInputSection extends StatelessWidget {
 
   /// Returns [ContextRingData] for the context usage ring indicator.
   ///
-  /// Uses the exact API-reported [promptTokens] from the most recent completed
-  /// turn. Returns null when no context length is configured or no completed
-  /// turn exists yet.
+  /// Uses [totalTokens] (prompt + completion) from the most recent completed
+  /// turn, because the next API call will include the AI's reply as part of
+  /// its input. Returns null when no context length is configured or no
+  /// completed turn exists yet.
   ContextRingData? _computeContextUsage(
     SettingsProvider settings,
     Assistant? assistant,
@@ -238,13 +239,13 @@ class ChatInputSection extends StatelessWidget {
         overrides?[OpenRouterModelMeta.kContextLength] as int?;
     if (contextLength == null || contextLength <= 0) return null;
 
-    final sentTokens = TokenUtils.lastPromptTokens(messages);
-    if (sentTokens == null) return null;
+    final usedTokens = TokenUtils.lastTotalTokens(messages);
+    if (usedTokens == null) return null;
 
     return ContextRingData(
-      sentFraction: sentTokens / contextLength,
+      sentFraction: usedTokens / contextLength,
       tooltip:
-          '${TokenUtils.format(sentTokens)} / ${TokenUtils.format(contextLength)}',
+          '${TokenUtils.format(usedTokens)} / ${TokenUtils.format(contextLength)}',
     );
   }
 

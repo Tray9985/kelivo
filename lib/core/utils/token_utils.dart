@@ -55,21 +55,19 @@ abstract final class TokenUtils {
 
   // ── Conversation helpers ───────────────────────────────────────────────────
 
-  /// Return the [promptTokens] of the most recent completed AI message.
+  /// Return the [totalTokens] of the most recent completed AI message.
   ///
-  /// [promptTokens] = the tokens consumed by the INPUT sent to the API for
-  /// that turn (system prompt + all history + last user message). It excludes
-  /// the AI response, making it the correct value for the context ring's
-  /// inner ring (what the AI actually received as input).
+  /// [totalTokens] = promptTokens + completionTokens for that turn.
+  /// This is the correct value for the context ring: the next API call will
+  /// include the AI's reply as part of its input, so the full turn cost
+  /// (not just the prompt) reflects actual context window occupation.
   ///
-  /// Returns null when no completed AI message with [promptTokens] data exists.
-  static int? lastPromptTokens(List<ChatMessage> messages) {
+  /// Returns null when no completed AI message with [totalTokens] data exists.
+  static int? lastTotalTokens(List<ChatMessage> messages) {
     for (int i = messages.length - 1; i >= 0; i--) {
       final m = messages[i];
-      if (m.role == 'assistant' &&
-          !m.isStreaming &&
-          (m.promptTokens ?? 0) > 0) {
-        return m.promptTokens;
+      if (m.role == 'assistant' && !m.isStreaming && (m.totalTokens ?? 0) > 0) {
+        return m.totalTokens;
       }
     }
     return null;
