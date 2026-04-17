@@ -35,11 +35,13 @@ class MarkdownWithCodeHighlight extends StatelessWidget {
     required this.text,
     this.onCitationTap,
     this.baseStyle,
+    this.showCitations = true,
   });
 
   final String text;
   final void Function(String id)? onCitationTap;
   final TextStyle? baseStyle; // optional override for base markdown text style
+  final bool showCitations;
 
   // Tunable: list scaling compensation exponent.
   // When chat scale s != 1.0, lists often feel slightly off compared to body.
@@ -267,6 +269,7 @@ class MarkdownWithCodeHighlight extends StatelessWidget {
 
         // Special handling: [citation](index:id)
         if (label.toLowerCase() == 'citation') {
+          if (!showCitations) return const SizedBox.shrink();
           final parts = url.split(':');
           if (parts.length == 2) {
             final indexText = parts[0].trim();
@@ -279,6 +282,7 @@ class MarkdownWithCodeHighlight extends StatelessWidget {
         // Fallback: [N](index:id) — LLM puts number as label, "index:id" as URL
         final numLabel = int.tryParse(label);
         if (numLabel != null && url.startsWith('index:')) {
+          if (!showCitations) return const SizedBox.shrink();
           final citId = url.substring('index:'.length).trim();
           return citationBadge(label, () {
             if (onCitationTap != null) {

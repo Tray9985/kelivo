@@ -211,3 +211,32 @@ fvm flutter build macos --release
 - assistant 消息气泡在 `isStreaming = true` 期间，始终在内容末尾显示三点 Loading 指示器
 - 覆盖所有阶段：等待首个 token、工具调用中、思考（reasoning）中、思考结束等待正文、正文流式输出中
 - `isStreaming` 变为 false（正常结束、用户停止、异常中断）后指示器自动消失
+
+---
+
+## 24. 默认助手提示词与示例助手移除
+
+- 移除「示例助手」，首次启动只创建「默认助手」
+- 默认助手从空提示词升级为包含以下内容的实质性提示词（通过 ARB key `assistantProviderDefaultAssistantSystemPrompt` 管理，含占位符）：
+  - 设备上下文：当前时间、设备语言、时区、设备型号、系统版本
+  - 回答格式要求：使用 Markdown，避免文字墙，先给结论
+  - 主动搜索策略：时效性内容、文档引用、覆盖不足时无需等待用户提示自动搜索
+  - 语言规则：默认使用设备语言，除非用户明确指定
+
+---
+
+## 25. 助手编辑页提示词「恢复默认」按钮
+
+- 系统提示词输入框右下角增加「恢复默认」文字按钮
+- 点击后将输入框内容替换为默认提示词（同 `assistantProviderDefaultAssistantSystemPrompt`）并立即保存
+- 桌面端：鼠标悬停时显示 `click` 指针，hover/press 透明度动画；移动端：触摸 press 透明度动画
+
+---
+
+## 26. 显示搜索引用开关
+
+- 设置 → 显示 新增「显示搜索引用」开关（默认开启），持久化至 SharedPreferences（key: `display_show_search_citations_v1`）
+- 关闭后：
+  - 消息内嵌 `[citation](index:id)` 徽章不渲染（`MarkdownWithCodeHighlight` 的 `showCitations` 参数控制）
+  - 消息底部来源汇总卡片（`_SourcesSummaryCard`）不显示
+- 搜索工具本身的执行和结果不受影响，LLM 仍会输出引用标记（仅渲染层抑制）

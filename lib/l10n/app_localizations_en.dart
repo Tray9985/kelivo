@@ -351,13 +351,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get assistantProviderDefaultAssistantName => 'Default Assistant';
 
   @override
-  String get assistantProviderSampleAssistantName => 'Sample Assistant';
-
-  @override
-  String get assistantProviderNewAssistantName => 'New Assistant';
-
-  @override
-  String assistantProviderSampleAssistantSystemPrompt(
+  String assistantProviderDefaultAssistantSystemPrompt(
     String model_name,
     String cur_datetime,
     String locale,
@@ -365,8 +359,11 @@ class AppLocalizationsEn extends AppLocalizations {
     String device_info,
     String system_version,
   ) {
-    return 'You are $model_name, an AI assistant who gladly provides accurate and helpful assistance. The current time is $cur_datetime, the device language is $locale, timezone is $timezone, the user is using $device_info, version $system_version. If the user does not explicitly specify otherwise, please use the user\'s device language when replying.';
+    return 'You are $model_name, an AI assistant focused on answering your questions. Current time: $cur_datetime, device language: $locale, timezone: $timezone, device: $device_info, system version: $system_version.\n\n## Response Format\n- Use Markdown: headers, lists, and code blocks where appropriate\n- Avoid walls of text; break complex content into sections or bullet points\n- Lead with the conclusion; add reasoning only if needed\n\n## Proactive Search\nUse search tools proactively — without waiting to be asked — when:\n- Content is time-sensitive (news, versions, prices, policies)\n- Specific docs, API references, or specs are needed\n- Your coverage of the topic may be outdated or uncertain\n\n## Language\nReply in the device language ($locale) unless the user specifies otherwise.';
   }
+
+  @override
+  String get assistantProviderNewAssistantName => 'New Assistant';
 
   @override
   String get displaySettingsPageLanguageTitle => 'App Language';
@@ -981,6 +978,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get assistantEditSystemPromptImportButton => 'Import file';
+
+  @override
+  String get assistantEditRestoreDefaultPromptButton => 'Restore Default';
 
   @override
   String get assistantEditSystemPromptImportSuccess =>
@@ -3308,6 +3308,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get displaySettingsPageShowToolResultSummarySubtitle =>
       'Display the summary text below tool steps';
+
+  @override
+  String get displaySettingsPageShowSearchCitationsTitle =>
+      'Show Search Citations';
+
+  @override
+  String get displaySettingsPageShowSearchCitationsSubtitle =>
+      'Show inline citation badges and sources card in search results';
 
   @override
   String chainOfThoughtExpandSteps(Object count) {

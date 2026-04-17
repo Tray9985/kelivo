@@ -242,6 +242,7 @@
   "assistantEditSystemPromptTitle": "系統提示詞",
   "assistantEditSystemPromptHint": "輸入系統提示詞…",
   "assistantEditSystemPromptImportButton": "從檔案匯入",
+  "assistantEditRestoreDefaultPromptButton": "恢復預設",
   "assistantEditSystemPromptImportSuccess": "已從檔案更新系統提示詞",
   "assistantEditSystemPromptImportFailed": "匯入失敗",
   "assistantEditSystemPromptImportEmpty": "檔案內容為空",
@@ -335,10 +336,8 @@
   "assistantEditTemperatureTitle": "溫度",
   "assistantEditTopPTitle": "Top-p",
   "assistantProviderDefaultAssistantName": "預設助理",
-  "assistantProviderSampleAssistantName": "範例助理",
-  "assistantProviderNewAssistantName": "新助理",
-  "assistantProviderSampleAssistantSystemPrompt": "你是{model_name}, 一個人工智慧助理，樂意為使用者提供準確，有益的幫助。現在時間是{cur_datetime}，使用者裝置語言為{locale}，時區為{timezone}，使用者正在使用{device_info}，版本{system_version}。如果使用者沒有明確說明，請使用使用者裝置語言進行回覆。",
-  "@assistantProviderSampleAssistantSystemPrompt": {
+  "assistantProviderDefaultAssistantSystemPrompt": "你是 {model_name}，一個專注於解答使用者疑問的 AI 助理。目前時間：{cur_datetime}，裝置語言：{locale}，時區：{timezone}，裝置：{device_info}，系統版本：{system_version}。\n\n## 回答格式\n- 使用 Markdown 格式，合理運用標題、清單、程式碼區塊等結構\n- 避免大段文字牆，內容複雜時主動分段或分點\n- 先給結論，必要時再補充推導過程\n\n## 主動搜尋\n遇到以下情況，無需等待使用者提示，主動使用搜尋工具：\n- 時效性內容（新聞、版本、價格、政策等）\n- 需要具體文件、API 參考、規範原文\n- 對該話題覆蓋不足或答案可能已變化\n\n## 語言\n預設使用裝置語言（{locale}）回覆，除非使用者明確指定。",
+  "@assistantProviderDefaultAssistantSystemPrompt": {
     "placeholders": {
       "model_name": {
         "type": "String"
@@ -360,6 +359,7 @@
       }
     }
   },
+  "assistantProviderNewAssistantName": "新助理",
   "displaySettingsPageLanguageTitle": "應用程式語言",
   "displaySettingsPageLanguageSubtitle": "選擇介面語言",
   "displaySettingsPageLanguageChineseLabel": "简体中文",
@@ -1054,6 +1054,8 @@
   "displaySettingsPageCollapseThinkingStepsSubtitle": "預設只顯示最新步驟，展開後查看全部",
   "displaySettingsPageShowToolResultSummaryTitle": "顯示工具結果摘要",
   "displaySettingsPageShowToolResultSummarySubtitle": "在工具步驟下方顯示摘要文字",
+  "displaySettingsPageShowSearchCitationsTitle": "顯示搜尋引用",
+  "displaySettingsPageShowSearchCitationsSubtitle": "在搜尋結果中顯示內嵌引用標記和來源卡片",
   "chainOfThoughtExpandSteps": "展開更多 {count} 步",
   "@chainOfThoughtExpandSteps": {
     "placeholders": {

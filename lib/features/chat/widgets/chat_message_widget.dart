@@ -1737,6 +1737,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
         text: visualContent,
         onCitationTap: (id) => _handleCitationTap(id),
         baseStyle: TextStyle(fontSize: baseAssistant, height: 1.5),
+        showCitations: settings.showSearchCitations,
       );
     } else {
       assistantContent = Text(
@@ -2268,6 +2269,8 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                                               fontSize: baseTranslation,
                                               height: 1.4,
                                             ),
+                                            showCitations:
+                                                settings.showSearchCitations,
                                           );
                                     } else {
                                       translationContent = Text(
@@ -2304,7 +2307,8 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
             _ErrorSection(errorText: widget.errorText!),
           ],
           // Sources summary card (tap to open full citations)
-          if (_latestSearchItems().isNotEmpty) ...[
+          if (settings.showSearchCitations &&
+              _latestSearchItems().isNotEmpty) ...[
             const SizedBox(height: 8),
             _SourcesSummaryCard(
               count: _latestSearchItems().length,

@@ -85,10 +85,20 @@ class AssistantProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  String defaultSystemPrompt(AppLocalizations l10n) =>
+      l10n.assistantProviderDefaultAssistantSystemPrompt(
+        '{model_name}',
+        '{cur_datetime}',
+        '{locale}',
+        '{timezone}',
+        '{device_info}',
+        '{system_version}',
+      );
+
   Assistant _defaultAssistant(AppLocalizations l10n) => Assistant(
     id: const Uuid().v4(),
     name: l10n.assistantProviderDefaultAssistantName,
-    systemPrompt: '',
+    systemPrompt: defaultSystemPrompt(l10n),
     deletable: false,
     thinkingBudget: null,
     temperature: 0.6,
@@ -99,26 +109,7 @@ class AssistantProvider extends ChangeNotifier {
   Future<void> ensureDefaults(dynamic context) async {
     if (_assistants.isNotEmpty) return;
     final l10n = AppLocalizations.of(context)!;
-    // 1) 默认助手
     _assistants.add(_defaultAssistant(l10n));
-    // 2) 示例助手（带提示词模板）
-    _assistants.add(
-      Assistant(
-        id: const Uuid().v4(),
-        name: l10n.assistantProviderSampleAssistantName,
-        systemPrompt: l10n.assistantProviderSampleAssistantSystemPrompt(
-          '{model_name}',
-          '{cur_datetime}',
-          '"{locale}"',
-          '{timezone}',
-          '{device_info}',
-          '{system_version}',
-        ),
-        deletable: false,
-        temperature: 0.6,
-        topP: null,
-      ),
-    );
     await _persist();
     // Set current assistant if not set
     if (_currentAssistantId == null && _assistants.isNotEmpty) {

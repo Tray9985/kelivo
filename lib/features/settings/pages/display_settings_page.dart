@@ -1806,6 +1806,15 @@ class BehaviorStartupSettingsPage extends StatelessWidget {
               _iosDivider(context),
               _iosSwitchRow(
                 context,
+                icon: Lucide.Hash,
+                label: l10n.displaySettingsPageShowSearchCitationsTitle,
+                value: sp.showSearchCitations,
+                onChanged: (v) =>
+                    context.read<SettingsProvider>().setShowSearchCitations(v),
+              ),
+              _iosDivider(context),
+              _iosSwitchRow(
+                context,
                 icon: Lucide.BadgeInfo,
                 label: l10n.displaySettingsPageShowUpdatesTitle,
                 value: sp.showAppUpdates,

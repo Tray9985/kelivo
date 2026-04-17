@@ -91,6 +91,8 @@ class SettingsProvider extends ChangeNotifier {
       'display_collapse_thinking_steps_v1';
   static const String _displayShowToolResultSummaryKey =
       'display_show_tool_result_summary_v1';
+  static const String _displayShowSearchCitationsKey =
+      'display_show_search_citations_v1';
   static const String _displayShowMessageNavKey = 'display_show_message_nav_v1';
   static const String _displayUseNewAssistantAvatarUxKey =
       'display_use_new_assistant_avatar_ux_v1';
@@ -747,6 +749,8 @@ class SettingsProvider extends ChangeNotifier {
         prefs.getBool(_displayCollapseThinkingStepsKey) ?? false;
     _showToolResultSummary =
         prefs.getBool(_displayShowToolResultSummaryKey) ?? false;
+    _showSearchCitations =
+        prefs.getBool(_displayShowSearchCitationsKey) ?? true;
     _showMessageNavButtons = prefs.getBool(_displayShowMessageNavKey) ?? true;
     _useNewAssistantAvatarUx =
         prefs.getBool(_displayUseNewAssistantAvatarUxKey) ?? false;
@@ -2758,6 +2762,17 @@ DO NOT GIVE ANSWERS OR DO HOMEWORK FOR THE USER. If the user asks a math or logi
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_displayShowToolResultSummaryKey, v);
+  }
+
+  // Display: show search citations (inline badges + sources card)
+  bool _showSearchCitations = true;
+  bool get showSearchCitations => _showSearchCitations;
+  Future<void> setShowSearchCitations(bool v) async {
+    if (_showSearchCitations == v) return;
+    _showSearchCitations = v;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_displayShowSearchCitationsKey, v);
   }
 
   // Display: show message navigation button

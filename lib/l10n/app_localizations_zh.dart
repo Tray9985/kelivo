@@ -348,13 +348,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get assistantProviderDefaultAssistantName => '默认助手';
 
   @override
-  String get assistantProviderSampleAssistantName => '示例助手';
-
-  @override
-  String get assistantProviderNewAssistantName => '新助手';
-
-  @override
-  String assistantProviderSampleAssistantSystemPrompt(
+  String assistantProviderDefaultAssistantSystemPrompt(
     String model_name,
     String cur_datetime,
     String locale,
@@ -362,8 +356,11 @@ class AppLocalizationsZh extends AppLocalizations {
     String device_info,
     String system_version,
   ) {
-    return '你是$model_name, 一个人工智能助手，乐意为用户提供准确，有益的帮助。现在时间是$cur_datetime，用户设备语言为$locale，时区为$timezone，用户正在使用$device_info，版本$system_version。如果用户没有明确说明，请使用用户设备语言进行回复。';
+    return '你是 $model_name，一个专注于解答用户疑问的 AI 助手。当前时间：$cur_datetime，设备语言：$locale，时区：$timezone，设备：$device_info，系统版本：$system_version。\n\n## 回答格式\n- 使用 Markdown 格式，合理运用标题、列表、代码块等结构\n- 避免大段文字墙，内容复杂时主动分段或分点\n- 先给结论，必要时再补充推导过程\n\n## 主动搜索\n遇到以下情况，无需等待用户提示，主动使用搜索工具：\n- 时效性内容（新闻、版本、价格、政策等）\n- 需要具体文档、API 参考、规范原文\n- 对该话题覆盖不足或答案可能已变化\n\n## 语言\n默认使用设备语言（$locale）回复，除非用户明确指定。';
   }
+
+  @override
+  String get assistantProviderNewAssistantName => '新助手';
 
   @override
   String get displaySettingsPageLanguageTitle => '应用语言';
@@ -953,6 +950,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get assistantEditSystemPromptImportButton => '从文件导入';
+
+  @override
+  String get assistantEditRestoreDefaultPromptButton => '恢复默认';
 
   @override
   String get assistantEditSystemPromptImportSuccess => '已从文件更新系统提示词';
@@ -3192,6 +3192,13 @@ class AppLocalizationsZh extends AppLocalizations {
       '在工具步骤下方显示摘要文本';
 
   @override
+  String get displaySettingsPageShowSearchCitationsTitle => '显示搜索引用';
+
+  @override
+  String get displaySettingsPageShowSearchCitationsSubtitle =>
+      '在搜索结果中显示内嵌引用标记和来源卡片';
+
+  @override
   String chainOfThoughtExpandSteps(Object count) {
     return '展开更多 $count 步';
   }
@@ -4756,13 +4763,7 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get assistantProviderDefaultAssistantName => '默认助手';
 
   @override
-  String get assistantProviderSampleAssistantName => '示例助手';
-
-  @override
-  String get assistantProviderNewAssistantName => '新助手';
-
-  @override
-  String assistantProviderSampleAssistantSystemPrompt(
+  String assistantProviderDefaultAssistantSystemPrompt(
     String model_name,
     String cur_datetime,
     String locale,
@@ -4770,8 +4771,11 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
     String device_info,
     String system_version,
   ) {
-    return '你是$model_name, 一个人工智能助手，乐意为用户提供准确，有益的帮助。现在时间是$cur_datetime，用户设备语言为$locale，时区为$timezone，用户正在使用$device_info，版本$system_version。如果用户没有明确说明，请使用用户设备语言进行回复。';
+    return '你是 $model_name，一个专注于解答用户疑问的 AI 助手。当前时间：$cur_datetime，设备语言：$locale，时区：$timezone，设备：$device_info，系统版本：$system_version。\n\n## 回答格式\n- 使用 Markdown 格式，合理运用标题、列表、代码块等结构\n- 避免大段文字墙，内容复杂时主动分段或分点\n- 先给结论，必要时再补充推导过程\n\n## 主动搜索\n遇到以下情况，无需等待用户提示，主动使用搜索工具：\n- 时效性内容（新闻、版本、价格、政策等）\n- 需要具体文档、API 参考、规范原文\n- 对该话题覆盖不足或答案可能已变化\n\n## 语言\n默认使用设备语言（$locale）回复，除非用户明确指定。';
   }
+
+  @override
+  String get assistantProviderNewAssistantName => '新助手';
 
   @override
   String get displaySettingsPageLanguageTitle => '应用语言';
@@ -5361,6 +5365,9 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get assistantEditSystemPromptImportButton => '从文件导入';
+
+  @override
+  String get assistantEditRestoreDefaultPromptButton => '恢复默认';
 
   @override
   String get assistantEditSystemPromptImportSuccess => '已从文件更新系统提示词';
@@ -7569,6 +7576,13 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
       '在工具步骤下方显示摘要文本';
 
   @override
+  String get displaySettingsPageShowSearchCitationsTitle => '显示搜索引用';
+
+  @override
+  String get displaySettingsPageShowSearchCitationsSubtitle =>
+      '在搜索结果中显示内嵌引用标记和来源卡片';
+
+  @override
   String chainOfThoughtExpandSteps(Object count) {
     return '展开更多 $count 步';
   }
@@ -9112,13 +9126,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get assistantProviderDefaultAssistantName => '預設助理';
 
   @override
-  String get assistantProviderSampleAssistantName => '範例助理';
-
-  @override
-  String get assistantProviderNewAssistantName => '新助理';
-
-  @override
-  String assistantProviderSampleAssistantSystemPrompt(
+  String assistantProviderDefaultAssistantSystemPrompt(
     String model_name,
     String cur_datetime,
     String locale,
@@ -9126,8 +9134,11 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
     String device_info,
     String system_version,
   ) {
-    return '你是$model_name, 一個人工智慧助理，樂意為使用者提供準確，有益的幫助。現在時間是$cur_datetime，使用者裝置語言為$locale，時區為$timezone，使用者正在使用$device_info，版本$system_version。如果使用者沒有明確說明，請使用使用者裝置語言進行回覆。';
+    return '你是 $model_name，一個專注於解答使用者疑問的 AI 助理。目前時間：$cur_datetime，裝置語言：$locale，時區：$timezone，裝置：$device_info，系統版本：$system_version。\n\n## 回答格式\n- 使用 Markdown 格式，合理運用標題、清單、程式碼區塊等結構\n- 避免大段文字牆，內容複雜時主動分段或分點\n- 先給結論，必要時再補充推導過程\n\n## 主動搜尋\n遇到以下情況，無需等待使用者提示，主動使用搜尋工具：\n- 時效性內容（新聞、版本、價格、政策等）\n- 需要具體文件、API 參考、規範原文\n- 對該話題覆蓋不足或答案可能已變化\n\n## 語言\n預設使用裝置語言（$locale）回覆，除非使用者明確指定。';
   }
+
+  @override
+  String get assistantProviderNewAssistantName => '新助理';
 
   @override
   String get displaySettingsPageLanguageTitle => '應用程式語言';
@@ -9717,6 +9728,9 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get assistantEditSystemPromptImportButton => '從檔案匯入';
+
+  @override
+  String get assistantEditRestoreDefaultPromptButton => '恢復預設';
 
   @override
   String get assistantEditSystemPromptImportSuccess => '已從檔案更新系統提示詞';
@@ -11949,6 +11963,13 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   @override
   String get displaySettingsPageShowToolResultSummarySubtitle =>
       '在工具步驟下方顯示摘要文字';
+
+  @override
+  String get displaySettingsPageShowSearchCitationsTitle => '顯示搜尋引用';
+
+  @override
+  String get displaySettingsPageShowSearchCitationsSubtitle =>
+      '在搜尋結果中顯示內嵌引用標記和來源卡片';
 
   @override
   String chainOfThoughtExpandSteps(Object count) {

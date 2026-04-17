@@ -108,6 +108,8 @@ class _DisplaySettingsBody extends StatelessWidget {
                   _RowDivider(),
                   _ToggleRowShowToolResultSummary(),
                   _RowDivider(),
+                  _ToggleRowShowSearchCitations(),
+                  _RowDivider(),
                   _ToggleRowShowUpdates(),
                   _RowDivider(),
                   _ToggleRowMsgNavButtons(),
@@ -2198,6 +2200,21 @@ class _ToggleRowShowToolResultSummary extends StatelessWidget {
       value: sp.showToolResultSummary,
       onChanged: (v) =>
           context.read<SettingsProvider>().setShowToolResultSummary(v),
+    );
+  }
+}
+
+class _ToggleRowShowSearchCitations extends StatelessWidget {
+  const _ToggleRowShowSearchCitations();
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final sp = context.watch<SettingsProvider>();
+    return _ToggleRow(
+      label: l10n.displaySettingsPageShowSearchCitationsTitle,
+      value: sp.showSearchCitations,
+      onChanged: (v) =>
+          context.read<SettingsProvider>().setShowSearchCitations(v),
     );
   }
 }

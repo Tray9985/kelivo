@@ -730,23 +730,11 @@ abstract class AppLocalizations {
   /// **'Default Assistant'**
   String get assistantProviderDefaultAssistantName;
 
-  /// No description provided for @assistantProviderSampleAssistantName.
+  /// No description provided for @assistantProviderDefaultAssistantSystemPrompt.
   ///
   /// In en, this message translates to:
-  /// **'Sample Assistant'**
-  String get assistantProviderSampleAssistantName;
-
-  /// No description provided for @assistantProviderNewAssistantName.
-  ///
-  /// In en, this message translates to:
-  /// **'New Assistant'**
-  String get assistantProviderNewAssistantName;
-
-  /// No description provided for @assistantProviderSampleAssistantSystemPrompt.
-  ///
-  /// In en, this message translates to:
-  /// **'You are {model_name}, an AI assistant who gladly provides accurate and helpful assistance. The current time is {cur_datetime}, the device language is {locale}, timezone is {timezone}, the user is using {device_info}, version {system_version}. If the user does not explicitly specify otherwise, please use the user\'s device language when replying.'**
-  String assistantProviderSampleAssistantSystemPrompt(
+  /// **'You are {model_name}, an AI assistant focused on answering your questions. Current time: {cur_datetime}, device language: {locale}, timezone: {timezone}, device: {device_info}, system version: {system_version}.\n\n## Response Format\n- Use Markdown: headers, lists, and code blocks where appropriate\n- Avoid walls of text; break complex content into sections or bullet points\n- Lead with the conclusion; add reasoning only if needed\n\n## Proactive Search\nUse search tools proactively — without waiting to be asked — when:\n- Content is time-sensitive (news, versions, prices, policies)\n- Specific docs, API references, or specs are needed\n- Your coverage of the topic may be outdated or uncertain\n\n## Language\nReply in the device language ({locale}) unless the user specifies otherwise.'**
+  String assistantProviderDefaultAssistantSystemPrompt(
     String model_name,
     String cur_datetime,
     String locale,
@@ -754,6 +742,12 @@ abstract class AppLocalizations {
     String device_info,
     String system_version,
   );
+
+  /// No description provided for @assistantProviderNewAssistantName.
+  ///
+  /// In en, this message translates to:
+  /// **'New Assistant'**
+  String get assistantProviderNewAssistantName;
 
   /// No description provided for @displaySettingsPageLanguageTitle.
   ///
@@ -1918,6 +1912,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Import file'**
   String get assistantEditSystemPromptImportButton;
+
+  /// No description provided for @assistantEditRestoreDefaultPromptButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Default'**
+  String get assistantEditRestoreDefaultPromptButton;
 
   /// No description provided for @assistantEditSystemPromptImportSuccess.
   ///
@@ -6205,6 +6205,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Display the summary text below tool steps'**
   String get displaySettingsPageShowToolResultSummarySubtitle;
+
+  /// No description provided for @displaySettingsPageShowSearchCitationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Search Citations'**
+  String get displaySettingsPageShowSearchCitationsTitle;
+
+  /// No description provided for @displaySettingsPageShowSearchCitationsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show inline citation badges and sources card in search results'**
+  String get displaySettingsPageShowSearchCitationsSubtitle;
 
   /// No description provided for @chainOfThoughtExpandSteps.
   ///

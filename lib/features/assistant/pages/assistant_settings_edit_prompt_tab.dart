@@ -17,6 +17,8 @@ class _PromptTabState extends State<_PromptTab> {
   bool _showPresetInput = false;
   String _presetRole = 'user';
   final GlobalKey _presetHeaderKey = GlobalKey(debugLabel: 'presetHeader');
+  bool _restoreHovered = false;
+  bool _restorePressed = false;
 
   @override
   void initState() {
@@ -269,36 +271,68 @@ class _PromptTabState extends State<_PromptTab> {
               ],
             ),
             const SizedBox(height: 10),
-            TextField(
-              controller: _sysCtrl,
-              focusNode: _sysFocus,
-              onChanged: (v) => context
-                  .read<AssistantProvider>()
-                  .updateAssistant(a.copyWith(systemPrompt: v)),
-              // minLines: 1,
-              maxLines: 8,
-              keyboardType: TextInputType.multiline,
-              textInputAction: TextInputAction.newline,
-              enableInteractiveSelection: true,
-              decoration: InputDecoration(
-                hintText: l10n.assistantEditSystemPromptHint,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: cs.outlineVariant.withValues(alpha: 0.35),
+            Stack(
+              children: [
+                TextField(
+                  controller: _sysCtrl,
+                  focusNode: _sysFocus,
+                  onChanged: (v) => context
+                      .read<AssistantProvider>()
+                      .updateAssistant(a.copyWith(systemPrompt: v)),
+                  maxLines: 8,
+                  keyboardType: TextInputType.multiline,
+                  textInputAction: TextInputAction.newline,
+                  enableInteractiveSelection: true,
+                  decoration: InputDecoration(
+                    hintText: l10n.assistantEditSystemPromptHint,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: cs.outlineVariant.withValues(alpha: 0.35),
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: cs.primary.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.fromLTRB(12, 12, 12, 36),
                   ),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: cs.primary.withValues(alpha: 0.5),
+                Positioned(
+                  right: 8,
+                  bottom: 6,
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    onEnter: (_) => setState(() => _restoreHovered = true),
+                    onExit: (_) => setState(() => _restoreHovered = false),
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTapDown: (_) => setState(() => _restorePressed = true),
+                      onTapUp: (_) => setState(() => _restorePressed = false),
+                      onTapCancel: () =>
+                          setState(() => _restorePressed = false),
+                      onTap: () {
+                        _applySystemPromptChange(ap.defaultSystemPrompt(l10n));
+                      },
+                      child: AnimatedOpacity(
+                        opacity: _restorePressed
+                            ? 0.35
+                            : (_restoreHovered ? 0.6 : 0.75),
+                        duration: const Duration(milliseconds: 150),
+                        child: Text(
+                          l10n.assistantEditRestoreDefaultPromptButton,
+                          style: TextStyle(fontSize: 12, color: cs.primary),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-                contentPadding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-              ),
+              ],
             ),
             const SizedBox(height: 8),
             Text(
