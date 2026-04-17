@@ -36,16 +36,10 @@ class OpenRouterModelMeta {
   final bool supportsVision;
 
   factory OpenRouterModelMeta.fromOpenRouterJson(Map<String, dynamic> json) {
-    final topProvider = json['top_provider'];
-    int? contextLength;
-    int? maxCompletionTokens;
-
-    if (topProvider is Map) {
-      contextLength = topProvider['context_length'] as int?;
-      maxCompletionTokens = topProvider['max_completion_tokens'] as int?;
-    }
-    // Fall back to root-level context_length if top_provider doesn't have it.
-    contextLength ??= json['context_length'] as int?;
+    final contextLength = json['context_length'] as int?;
+    final maxCompletionTokens = json['top_provider'] is Map
+        ? json['top_provider']['max_completion_tokens'] as int?
+        : null;
 
     final params =
         (json['supported_parameters'] as List?)?.cast<String>() ?? [];

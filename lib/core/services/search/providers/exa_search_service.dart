@@ -28,7 +28,7 @@ class ExaSearchService extends SearchService<ExaOptions> {
         'query': query,
         'numResults': commonOptions.resultSize,
         'contents': {
-          'text': {'maxCharacters': 2000},
+          'highlights': {'query': query, 'maxCharacters': 1500},
         },
       });
 
@@ -49,10 +49,14 @@ class ExaSearchService extends SearchService<ExaOptions> {
 
       final data = jsonDecode(response.body);
       final results = (data['results'] as List).map((item) {
+        final highlights = item['highlights'];
+        final text = highlights is List
+            ? highlights.join('\n\n')
+            : '';
         return SearchResultItem(
           title: item['title'] ?? '',
           url: item['url'] ?? '',
-          text: item['text'] ?? '',
+          text: text,
         );
       }).toList();
 
