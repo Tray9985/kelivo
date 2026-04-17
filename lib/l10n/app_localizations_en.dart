@@ -3781,6 +3781,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String get requestFailedPrefix => 'Request failed: ';
 
   @override
+  String get httpStatus400 => 'Bad Request (400)';
+
+  @override
+  String get httpStatus401 => 'Unauthorized (401)';
+
+  @override
+  String get httpStatus403 => 'Forbidden (403)';
+
+  @override
+  String get httpStatus404 => 'Not Found (404)';
+
+  @override
+  String get httpStatus408 => 'Request Timeout (408)';
+
+  @override
+  String get httpStatus429 => 'Rate Limited (429)';
+
+  @override
+  String get httpStatus500 => 'Server Error (500)';
+
+  @override
+  String get httpStatus502 => 'Bad Gateway (502)';
+
+  @override
+  String get httpStatus503 => 'Service Unavailable (503)';
+
+  @override
+  String get httpStatus504 => 'Gateway Timeout (504)';
+
+  @override
+  String get httpStatus529 => 'Overloaded (529)';
+
+  @override
+  String httpStatusUnknown(int code) {
+    return 'HTTP $code';
+  }
+
+  @override
   String get titleForLocale => 'New Chat';
 
   @override
@@ -4515,6 +4553,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
     return '$countString tokens';
   }
+
+  @override
+  String get messageListContextTrimDivider =>
+      'Messages above are not visible to AI';
 
   @override
   String get orModelPickerTitle => 'Select OpenRouter Model';

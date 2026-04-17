@@ -779,6 +779,7 @@ class _HomePageState extends State<HomePage>
       backdropKey: _messageListBackdropKey,
       child: MessageListView(
         isProcessingFiles: _controller.isProcessingFiles,
+        trimBoundary: _controller.trimBoundary,
         scrollController: _scrollController,
         observerController: _controller.scrollCtrl.observerController,
         messages: _controller.chatController.collapsedMessages,

@@ -22,6 +22,7 @@ import '../../../core/providers/world_book_provider.dart';
 import '../../../core/services/api/builtin_tools.dart';
 import '../../../core/models/assistant_regex.dart';
 import '../../../core/utils/multimodal_input_utils.dart';
+import '../../../core/utils/token_utils.dart';
 import '../../../utils/assistant_regex.dart';
 import '../../../utils/markdown_media_sanitizer.dart';
 
@@ -172,8 +173,11 @@ class MessageBuilderService {
               'role': 'assistant',
               'content': '\n\n',
               'tool_calls': calls,
+              '__srcId': m.id,
             });
-            out.addAll(toolMessages);
+            for (final t in toolMessages) {
+              out.add({...t, '__srcId': m.id});
+            }
           }
         }
       }
@@ -186,6 +190,7 @@ class MessageBuilderService {
       out.add(<String, dynamic>{
         'role': m.role == 'assistant' ? 'assistant' : 'user',
         'content': content,
+        '__srcId': m.id,
       });
     }
 
@@ -858,10 +863,19 @@ class MessageBuilderService {
   /// Apply context message limit based on assistant settings and token budget.
   ///
   /// Phase 1: trim to [assistant.contextMessageSize] messages (count-based).
-  /// Phase 2: if [contextTokenLimit] is provided, further trim oldest non-system
-  /// messages until the rough token estimate fits within the budget.
-  /// Tool-call triplet integrity is preserved in both phases.
-  void applyContextLimit(
+  /// Phase 2: fill-from-newest — iterate from the newest message backwards,
+  /// accumulating estimated tokens until the budget is exceeded. Messages that
+  /// don't fit are removed from the front. Turn integrity (user/assistant/tool
+  /// triplets) is preserved in both phases via [_advanceToUserMessage].
+  ///
+  /// Returns the `__srcId` of the first ChatMessage visible to the AI after
+  /// trimming (i.e. the first non-system message remaining), or null if the
+  /// list is empty. Callers can resolve this id back to a ChatMessage index
+  /// via [ChatController.indexOfCollapsedMessageId].
+  ///
+  /// NOTE: All `__srcId` annotations injected by [buildApiMessages] are
+  /// stripped from [apiMessages] before this method returns.
+  String? applyContextLimit(
     List<Map<String, dynamic>> apiMessages,
     Assistant? assistant, {
     int? contextTokenLimit,
@@ -873,10 +887,10 @@ class MessageBuilderService {
         Assistant.minContextMessageSize,
         Assistant.maxContextMessageSize,
       );
-      int startIdx = 0;
-      if (apiMessages.isNotEmpty && apiMessages.first['role'] == 'system') {
-        startIdx = 1;
-      }
+      final int startIdx =
+          apiMessages.isNotEmpty && apiMessages.first['role'] == 'system'
+          ? 1
+          : 0;
       final tail = apiMessages.sublist(startIdx);
       if (tail.length > keep) {
         final trimmed = tail.sublist(tail.length - keep);
@@ -884,70 +898,67 @@ class MessageBuilderService {
           ..removeRange(startIdx, apiMessages.length)
           ..addAll(trimmed);
       }
-      // Context trimming can cut in the middle of a tool-call triplet; avoid sending dangling tool messages.
-      while (apiMessages.length > startIdx &&
-          (apiMessages[startIdx]['role'] ?? '').toString() == 'tool') {
-        apiMessages.removeAt(startIdx);
-      }
+      _advanceToUserMessage(apiMessages, startIdx);
     }
 
-    // Phase 2: token-budget trimming using orContextLength.
-    // Reserve 2048 tokens for completion output; trim oldest non-system
-    // messages until the rough estimate fits.
+    // Phase 2: fill-from-newest token-budget trimming.
     if (contextTokenLimit != null && contextTokenLimit > 0) {
       const int outputReserve = 2048;
       final int inputBudget = (contextTokenLimit - outputReserve).clamp(
         512,
         contextTokenLimit,
       );
-      int startIdx = 0;
-      if (apiMessages.isNotEmpty && apiMessages.first['role'] == 'system') {
-        startIdx = 1;
+      final int startIdx =
+          apiMessages.isNotEmpty && apiMessages.first['role'] == 'system'
+          ? 1
+          : 0;
+
+      int totalEstimate = 0;
+      for (int i = startIdx; i < apiMessages.length; i++) {
+        totalEstimate += TokenUtils.estimateApiMessage(apiMessages[i]);
       }
-      while (apiMessages.length > startIdx) {
-        int total = 0;
-        for (final m in apiMessages) {
-          total += _estimateMessageTokens(m);
+
+      if (apiMessages.length > startIdx && totalEstimate > inputBudget) {
+        int accumulated = 0;
+        int cutFrom = startIdx;
+        for (int i = apiMessages.length - 1; i >= startIdx; i--) {
+          accumulated += TokenUtils.estimateApiMessage(apiMessages[i]);
+          if (accumulated > inputBudget) {
+            cutFrom = i + 1;
+            break;
+          }
         }
-        if (total <= inputBudget) break;
-        apiMessages.removeAt(startIdx);
-        // Remove dangling tool messages at the new head.
-        while (apiMessages.length > startIdx &&
-            (apiMessages[startIdx]['role'] ?? '').toString() == 'tool') {
-          apiMessages.removeAt(startIdx);
+        if (cutFrom > startIdx) {
+          apiMessages.removeRange(startIdx, cutFrom);
         }
+        _advanceToUserMessage(apiMessages, startIdx);
       }
     }
+
+    // Determine first visible ChatMessage id, then strip all __srcId tags.
+    final int startIdx =
+        apiMessages.isNotEmpty && apiMessages.first['role'] == 'system' ? 1 : 0;
+    final String? firstVisibleId = startIdx < apiMessages.length
+        ? apiMessages[startIdx]['__srcId'] as String?
+        : null;
+    for (final m in apiMessages) {
+      m.remove('__srcId');
+    }
+    return firstVisibleId;
   }
 
-  /// Rough token estimate for a single API message (~4 chars per token).
-  ///
-  /// Acceptable accuracy for safety trimming; no BPE tokenizer is available
-  /// client-side. The +4 accounts for role/structure overhead per message.
-  static int _estimateMessageTokens(Map<String, dynamic> msg) {
-    final content = msg['content'];
-    final int chars;
-    if (content is String) {
-      chars = content.length;
-    } else if (content is List) {
-      int total = 0;
-      for (final part in content) {
-        if (part is Map) {
-          final type = part['type'];
-          if (type == 'text') {
-            total += (part['text'] as String? ?? '').length;
-          } else {
-            total += part.toString().length;
-          }
-        } else {
-          total += part.toString().length;
-        }
-      }
-      chars = total;
-    } else {
-      chars = content?.toString().length ?? 0;
+  /// Advance [startIdx] forward until the message at that position is a user
+  /// message (or the list is exhausted). Removes orphaned assistant/tool
+  /// messages that would otherwise be left at the head of the context without
+  /// a corresponding user message.
+  static void _advanceToUserMessage(
+    List<Map<String, dynamic>> msgs,
+    int startIdx,
+  ) {
+    while (msgs.length > startIdx &&
+        (msgs[startIdx]['role'] ?? '').toString() != 'user') {
+      msgs.removeAt(startIdx);
     }
-    return (chars / 4).ceil() + 4;
   }
 
   /// Convert local Markdown image links to inline base64 for model context.

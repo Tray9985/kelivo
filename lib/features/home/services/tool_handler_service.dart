@@ -321,7 +321,8 @@ class ToolHandlerService {
       // Search tool
       if (name == SearchToolService.toolName && settings.searchEnabled) {
         final q = (args['query'] ?? '').toString();
-        return await SearchToolService.executeSearch(q, settings);
+        final result = await SearchToolService.executeSearch(q, settings);
+        return result;
       }
 
       // Memory tools

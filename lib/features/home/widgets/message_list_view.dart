@@ -72,6 +72,7 @@ class MessageListView extends StatelessWidget {
     super.key,
     required this.scrollController,
     required this.observerController,
+    required this.trimBoundary,
     required this.messages,
     required this.byGroup,
     required this.versionSelections,
@@ -109,6 +110,10 @@ class MessageListView extends StatelessWidget {
 
   final ScrollController scrollController;
   final ListObserverController observerController;
+
+  /// Index of the first ChatMessage visible to the AI after context trimming.
+  /// 0 means no trimming. Set by HomePageController after each send/regenerate.
+  final int trimBoundary;
 
   /// Pre-collapsed messages (from ChatController.collapsedMessages).
   final List<ChatMessage> messages;
@@ -199,20 +204,54 @@ class MessageListView extends StatelessWidget {
     );
   }
 
+  /// Build the trim-boundary divider: "Messages above are not visible to AI".
+  Widget _buildTrimDivider(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final cs = Theme.of(context).colorScheme;
+    final label = l10n.messageListContextTrimDivider;
+    final color = cs.error.withValues(alpha: 0.55);
+    final dp = dividerPadding.resolve(Directionality.of(context));
+    return Padding(
+      padding: EdgeInsets.fromLTRB(dp.left, 4, dp.right, 4),
+      child: Row(
+        children: [
+          Expanded(child: Divider(color: color, height: 1, thickness: 1)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                color: color,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(child: Divider(color: color, height: 1, thickness: 1)),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final widescreen = context.watch<SettingsProvider>().widescreenMode;
+        final settings = context.watch<SettingsProvider>();
+        final widescreen = settings.widescreenMode;
         final effectiveMaxWidth = widescreen
             ? ChatLayoutConstants.maxWidescreenWidth
             : ChatLayoutConstants.maxContentWidth;
         final horizontalPad = ((constraints.maxWidth - effectiveMaxWidth) / 2)
             .clamp(0.0, double.infinity);
 
+        final showTrimDivider =
+            trimBoundary > 0 && trimBoundary < messages.length;
+
         return ValueListenableBuilder<bool>(
           valueListenable: isProcessingFiles,
           builder: (context, isProcessing, child) {
+            final effectiveCount = messages.length + (showTrimDivider ? 1 : 0);
             final list = ListView.builder(
               controller: scrollController,
               padding: EdgeInsets.fromLTRB(
@@ -221,9 +260,27 @@ class MessageListView extends StatelessWidget {
                 horizontalPad,
                 isPinnedIndicatorActive ? 28 : 16,
               ),
-              itemCount: messages.length,
+              itemCount: effectiveCount,
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               itemBuilder: (context, index) {
+                // When divider is active, virtual index mapping:
+                //   index < trimBoundary  → messages[index]  (hidden)
+                //   index == trimBoundary → trim divider
+                //   index > trimBoundary  → messages[index - 1]  (visible)
+                if (showTrimDivider) {
+                  if (index == trimBoundary) {
+                    return _buildTrimDivider(context);
+                  }
+                  final msgIndex = index < trimBoundary ? index : index - 1;
+                  if (msgIndex < 0 || msgIndex >= messages.length) {
+                    return const SizedBox.shrink();
+                  }
+                  return _buildMessageItem(
+                    context,
+                    index: msgIndex,
+                    isProcessingFiles: isProcessing,
+                  );
+                }
                 if (index < 0 || index >= messages.length) {
                   return const SizedBox.shrink();
                 }

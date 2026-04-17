@@ -2139,7 +2139,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
               }
             }
 
-            if (widget.message.isStreaming && visualContent.isNotEmpty) {
+            if (widget.message.isStreaming) {
               widgets.add(
                 Padding(
                   padding: const EdgeInsets.only(left: 4, top: 4),
@@ -5463,18 +5463,49 @@ class _ErrorSection extends StatefulWidget {
 class _ErrorSectionState extends State<_ErrorSection> {
   bool _expanded = false;
 
-  String get _summary {
+  static final _httpCodeRe = RegExp(r'HTTP\s+(\d{3})', caseSensitive: false);
+
+  /// Extract a human-readable summary from the raw error string.
+  ///
+  /// If the text contains an HTTP status code (e.g. "HttpException: HTTP 529:")
+  /// the code is replaced with its localized description. Otherwise the first
+  /// line is used, truncated to 80 characters.
+  String _summary(AppLocalizations l10n) {
+    final match = _httpCodeRe.firstMatch(widget.errorText);
+    if (match != null) {
+      final code = int.tryParse(match.group(1) ?? '');
+      if (code != null) {
+        return _httpStatusDesc(l10n, code);
+      }
+    }
     final firstLine = widget.errorText.split('\n').first.trim();
     return firstLine.length <= 80
         ? firstLine
         : '${firstLine.substring(0, 80)}…';
   }
 
+  static String _httpStatusDesc(AppLocalizations l10n, int code) {
+    return switch (code) {
+      400 => l10n.httpStatus400,
+      401 => l10n.httpStatus401,
+      403 => l10n.httpStatus403,
+      404 => l10n.httpStatus404,
+      408 => l10n.httpStatus408,
+      429 => l10n.httpStatus429,
+      500 => l10n.httpStatus500,
+      502 => l10n.httpStatus502,
+      503 => l10n.httpStatus503,
+      504 => l10n.httpStatus504,
+      529 => l10n.httpStatus529,
+      _ => l10n.httpStatusUnknown(code),
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
-    final summary = '${l10n.requestFailedPrefix}$_summary';
+    final summary = '${l10n.requestFailedPrefix}${_summary(l10n)}';
 
     final bg = isDark
         ? const Color(0xFF3B1515).withValues(alpha: 0.85)

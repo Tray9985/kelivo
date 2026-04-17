@@ -141,6 +141,10 @@ class ChatScrollController {
   String? _lastJumpUserMessageId;
   String? get lastJumpUserMessageId => _lastJumpUserMessageId;
 
+  /// Whether the first "scroll to top" tap has already landed at the trim boundary.
+  /// When true, the next tap goes to the actual list top instead.
+  bool _scrolledToTrimBoundary = false;
+
   /// Tolerance for "near bottom" detection.
   static const double _autoScrollSnapTolerance = 56.0;
 
@@ -204,6 +208,7 @@ class ChatScrollController {
         _autoStickToBottom = false;
         // Reset chained jump anchor when user manually scrolls
         _lastJumpUserMessageId = null;
+        _scrolledToTrimBoundary = false;
 
         // Show navigation buttons on scroll activity
         if (!_showNavButtons) {
@@ -293,6 +298,7 @@ class ChatScrollController {
     _isUserScrolling = false;
     _userScrollTimer?.cancel();
     _lastJumpUserMessageId = null;
+    _scrolledToTrimBoundary = false;
     revealNavButtons();
     scrollToBottom();
   }
@@ -304,6 +310,7 @@ class ChatScrollController {
   }) {
     _isUserScrolling = false;
     _userScrollTimer?.cancel();
+    _scrolledToTrimBoundary = false;
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => scrollToBottom(animate: animate),
     );
@@ -405,11 +412,28 @@ class ChatScrollController {
   // ============================================================================
 
   /// Scroll to the top of the list.
-  void scrollToTop({bool animate = true}) {
+  ///
+  /// When [trimBoundary] > 0 (a trim divider is visible), the first tap scrolls
+  /// to the divider position so the user sees the "AI can't see above here"
+  /// marker. A second consecutive tap scrolls to the absolute list top.
+  void scrollToTop({bool animate = true, int trimBoundary = 0}) {
     try {
       if (!_scrollController.hasClients) return;
-      _lastJumpUserMessageId = null;
       revealNavButtons();
+
+      if (trimBoundary > 0 && !_scrolledToTrimBoundary) {
+        _scrolledToTrimBoundary = true;
+        _observerController.animateTo(
+          index: trimBoundary,
+          alignment: 0.0,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+        );
+        return;
+      }
+
+      _scrolledToTrimBoundary = false;
+      _lastJumpUserMessageId = null;
 
       if (animate) {
         final pos = _scrollController.position;

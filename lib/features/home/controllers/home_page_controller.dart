@@ -241,6 +241,8 @@ class HomePageController extends ChangeNotifier {
 
   ValueNotifier<bool> get isProcessingFiles => _viewModel.isProcessingFiles;
 
+  int get trimBoundary => _viewModel.trimBoundary;
+
   @override
   void notifyListeners() {
     if (_chatControllerReady) {
@@ -1408,7 +1410,7 @@ class HomePageController extends ChangeNotifier {
   }
 
   void scrollToTop({bool animate = true}) {
-    _scrollCtrl.scrollToTop(animate: animate);
+    _scrollCtrl.scrollToTop(animate: animate, trimBoundary: trimBoundary);
   }
 
   // ============================================================================

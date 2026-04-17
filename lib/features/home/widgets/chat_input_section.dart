@@ -6,6 +6,7 @@ import '../../../core/models/assistant.dart';
 import '../../../core/models/chat_message.dart';
 import '../../../core/models/openrouter_model_meta.dart';
 import '../../../core/providers/settings_provider.dart';
+import '../../../core/utils/token_utils.dart';
 import '../../../core/providers/assistant_provider.dart';
 import '../../../core/providers/mcp_provider.dart';
 import '../../../core/providers/quick_phrase_provider.dart';
@@ -131,11 +132,7 @@ class ChatInputSection extends StatelessWidget {
         isTablet && context.watch<WorldBookProvider>().books.isNotEmpty;
 
     // Compute context usage ring data.
-    final (contextUsageFraction, contextUsageTooltip) = _computeContextUsage(
-      settings,
-      pk,
-      mid,
-    );
+    final contextRing = _computeContextUsage(settings, a, pk, mid);
 
     return ChatInputBar(
       key: inputBarKey,
@@ -218,54 +215,37 @@ class ChatInputSection extends StatelessWidget {
       showMoreButton: !isTablet,
       onClearContext: isTablet ? onClearContext : null,
       onCompressContext: isTablet ? onCompressContext : null,
-      contextUsageFraction: contextUsageFraction,
-      contextUsageTooltip: contextUsageTooltip,
+      contextRing: contextRing,
     );
   }
 
-  /// Returns (fraction, tooltipLabel) for the context usage ring.
+  /// Returns [ContextRingData] for the context usage ring indicator.
   ///
-  /// Uses the most recent completed AI response's [totalTokens] as the context
-  /// size. This is the exact value reported by the API and covers everything
-  /// sent in that turn: system prompt, files, images, and all history.
-  /// Returns (null, null) when no model context length is configured or when
-  /// the conversation has no completed AI response with token data yet.
-  (double?, String?) _computeContextUsage(
+  /// Uses the exact API-reported [promptTokens] from the most recent completed
+  /// turn. Returns null when no context length is configured or no completed
+  /// turn exists yet.
+  ContextRingData? _computeContextUsage(
     SettingsProvider settings,
+    Assistant? assistant,
     String? providerKey,
     String? modelId,
   ) {
-    if (providerKey == null || modelId == null) return (null, null);
+    if (providerKey == null || modelId == null) return null;
 
     final cfg = settings.getProviderConfig(providerKey);
     final overrides = cfg.modelOverrides[modelId] as Map?;
     final contextLength =
         overrides?[OpenRouterModelMeta.kContextLength] as int?;
-    if (contextLength == null || contextLength <= 0) return (null, null);
+    if (contextLength == null || contextLength <= 0) return null;
 
-    ChatMessage? lastAssistant;
-    for (int i = messages.length - 1; i >= 0; i--) {
-      final m = messages[i];
-      if (m.role == 'assistant' && !m.isStreaming && (m.totalTokens ?? 0) > 0) {
-        lastAssistant = m;
-        break;
-      }
-    }
-    if (lastAssistant == null) return (null, null);
+    final sentTokens = TokenUtils.lastPromptTokens(messages);
+    if (sentTokens == null) return null;
 
-    final usedTokens = lastAssistant.totalTokens!;
-    final fraction = (usedTokens / contextLength).clamp(0.0, 1.0);
-    final tooltip =
-        '${_formatTokens(usedTokens)} / ${_formatTokens(contextLength)}';
-    return (fraction, tooltip);
-  }
-
-  static String _formatTokens(int tokens) {
-    if (tokens >= 1000000) {
-      return '${(tokens / 1000000).toStringAsFixed(1)}M';
-    }
-    if (tokens >= 1000) return '${(tokens / 1000).round()}K';
-    return '$tokens';
+    return ContextRingData(
+      sentFraction: sentTokens / contextLength,
+      tooltip:
+          '${TokenUtils.format(sentTokens)} / ${TokenUtils.format(contextLength)}',
+    );
   }
 
   bool _isDesktopPlatform(BuildContext context) {

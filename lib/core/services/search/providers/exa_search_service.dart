@@ -27,7 +27,9 @@ class ExaSearchService extends SearchService<ExaOptions> {
       final body = jsonEncode({
         'query': query,
         'numResults': commonOptions.resultSize,
-        'contents': {'text': true},
+        'contents': {
+          'text': {'maxCharacters': 2000},
+        },
       });
 
       final response = await http

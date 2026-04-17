@@ -41,6 +41,18 @@ class ChatInputBarController {
   void restoreInput(ChatInputData input) => _state?._restoreInput(input);
 }
 
+/// Data for the context usage ring indicator.
+///
+/// - [sentFraction] : promptTokens / contextLength — exact API-reported input
+///                    size for the most recent completed turn (≤ 1.0).
+/// - [tooltip]      : text shown on tap.
+class ContextRingData {
+  const ContextRingData({required this.sentFraction, required this.tooltip});
+
+  final double sentFraction;
+  final String tooltip;
+}
+
 class ChatInputBar extends StatefulWidget {
   const ChatInputBar({
     super.key,
@@ -88,8 +100,7 @@ class ChatInputBar extends StatefulWidget {
     this.showOcrButton = false,
     this.ocrActive = false,
     this.onToggleOcr,
-    this.contextUsageFraction,
-    this.contextUsageTooltip,
+    this.contextRing,
   });
 
   final Future<ChatInputSubmissionResult> Function(ChatInputData)? onSend;
@@ -136,8 +147,7 @@ class ChatInputBar extends StatefulWidget {
   final bool showOcrButton;
   final bool ocrActive;
   final VoidCallback? onToggleOcr;
-  final double? contextUsageFraction;
-  final String? contextUsageTooltip;
+  final ContextRingData? contextRing;
 
   @override
   State<ChatInputBar> createState() => _ChatInputBarState();
@@ -1781,11 +1791,8 @@ class _ChatInputBarState extends State<ChatInputBar>
                             ),
                             Row(
                               children: [
-                                if (widget.contextUsageFraction != null) ...[
-                                  _ContextRing(
-                                    fraction: widget.contextUsageFraction!,
-                                    tooltip: widget.contextUsageTooltip ?? '',
-                                  ),
+                                if (widget.contextRing != null) ...[
+                                  _ContextRing(data: widget.contextRing!),
                                   const SizedBox(width: 8),
                                 ],
                                 if (widget.showMoreButton) ...[
@@ -2042,35 +2049,37 @@ class _CompactIconButton extends StatelessWidget {
 }
 
 class _ContextRing extends StatelessWidget {
-  const _ContextRing({required this.fraction, required this.tooltip});
+  const _ContextRing({required this.data});
 
-  final double fraction;
-  final String tooltip;
+  final ContextRingData data;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final sent = data.sentFraction.clamp(0.0, 1.0);
+    final bg = theme.colorScheme.outlineVariant.withValues(alpha: 0.25);
+
+    // Color: 3-tier based on sent fraction.
     final Color color;
-    if (fraction >= 0.9) {
+    if (data.sentFraction >= 0.9) {
       color = theme.colorScheme.error;
-    } else if (fraction >= 0.7) {
+    } else if (data.sentFraction >= 0.7) {
       color = Colors.orange;
     } else {
       color = theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5);
     }
+
     return Tooltip(
-      message: tooltip,
+      message: data.tooltip,
       triggerMode: TooltipTriggerMode.tap,
       preferBelow: false,
       child: SizedBox(
         width: 18,
         height: 18,
         child: CircularProgressIndicator(
-          value: fraction.clamp(0.0, 1.0),
+          value: sent,
           strokeWidth: 2,
-          backgroundColor: theme.colorScheme.outlineVariant.withValues(
-            alpha: 0.25,
-          ),
+          backgroundColor: bg,
           valueColor: AlwaysStoppedAnimation<Color>(color),
           strokeCap: StrokeCap.round,
         ),

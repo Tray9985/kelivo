@@ -1572,6 +1572,34 @@
   "generationInterrupted": "Generation interrupted",
   "requestFailed": "Request failed, please check the error details",
   "requestFailedPrefix": "Request failed: ",
+  "httpStatus400": "Bad Request (400)",
+  "@httpStatus400": {},
+  "httpStatus401": "Unauthorized (401)",
+  "@httpStatus401": {},
+  "httpStatus403": "Forbidden (403)",
+  "@httpStatus403": {},
+  "httpStatus404": "Not Found (404)",
+  "@httpStatus404": {},
+  "httpStatus408": "Request Timeout (408)",
+  "@httpStatus408": {},
+  "httpStatus429": "Rate Limited (429)",
+  "@httpStatus429": {},
+  "httpStatus500": "Server Error (500)",
+  "@httpStatus500": {},
+  "httpStatus502": "Bad Gateway (502)",
+  "@httpStatus502": {},
+  "httpStatus503": "Service Unavailable (503)",
+  "@httpStatus503": {},
+  "httpStatus504": "Gateway Timeout (504)",
+  "@httpStatus504": {},
+  "httpStatus529": "Overloaded (529)",
+  "@httpStatus529": {},
+  "httpStatusUnknown": "HTTP {code}",
+  "@httpStatusUnknown": {
+    "placeholders": {
+      "code": {"type": "int"}
+    }
+  },
   "titleForLocale": "New Chat",
   "quickPhraseBackTooltip": "Back",
   "quickPhraseGlobalTitle": "Quick Phrase",
@@ -1903,6 +1931,8 @@
       "count": {"type": "int", "format": "decimalPattern"}
     }
   },
+  "messageListContextTrimDivider": "Messages above are not visible to AI",
+  "@messageListContextTrimDivider": {},
   "orModelPickerTitle": "Select OpenRouter Model",
   "@orModelPickerTitle": {},
   "orModelPickerSubtitle": "Could not automatically match this model. Select the corresponding OpenRouter entry to fetch context metadata.",

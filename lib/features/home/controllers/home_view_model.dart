@@ -152,6 +152,18 @@ class HomeViewModel extends ChangeNotifier {
 
   final ValueNotifier<bool> isProcessingFiles = ValueNotifier<bool>(false);
 
+  /// Index of the first ChatMessage (in collapsed list) that the AI will see
+  /// after context trimming. 0 means no trimming — all messages are visible.
+  /// Updated after every send/regenerate. Reset to 0 on conversation switch.
+  int _trimBoundary = 0;
+  int get trimBoundary => _trimBoundary;
+
+  void updateTrimBoundary(int boundary) {
+    if (_trimBoundary == boundary) return;
+    _trimBoundary = boundary;
+    notifyListeners();
+  }
+
   // ============================================================================
   // Internal Callbacks
   // ============================================================================
@@ -520,6 +532,7 @@ class HomeViewModel extends ChangeNotifier {
       }
       _chatController.setCurrentConversation(convo);
       _streamController.clearGeminiThoughtSigs();
+      _trimBoundary = 0;
       notifyListeners();
       onConversationSwitched?.call();
       unawaited(_drainQueuedInputIfReady(id));
@@ -546,6 +559,7 @@ class HomeViewModel extends ChangeNotifier {
 
     _chatController.setCurrentConversation(conversation);
     _streamController.clearAllState();
+    _trimBoundary = 0;
     notifyListeners();
 
     // Inject assistant preset messages into new conversation (ordered)

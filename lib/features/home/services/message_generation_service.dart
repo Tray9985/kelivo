@@ -54,12 +54,19 @@ class PreparedGeneration {
   final bool hasBuiltInSearch;
   final List<String> lastUserImagePaths;
 
+  /// The `__srcId` of the first ChatMessage visible to the AI after context
+  /// trimming. Null means no trimming occurred or the list is empty. Callers
+  /// resolve this to a ChatMessage index via
+  /// [ChatController.indexOfCollapsedMessageId].
+  final String? firstVisibleMessageId;
+
   PreparedGeneration({
     required this.apiMessages,
     required this.toolDefs,
     this.onToolCall,
     required this.hasBuiltInSearch,
     required this.lastUserImagePaths,
+    this.firstVisibleMessageId,
   });
 }
 
@@ -191,7 +198,7 @@ class MessageGenerationService {
     final orOverrides = cfg.modelOverrides[modelId] as Map? ?? const {};
     final contextTokenLimit =
         orOverrides[OpenRouterModelMeta.kContextLength] as int?;
-    messageBuilderService.applyContextLimit(
+    final firstVisibleMessageId = messageBuilderService.applyContextLimit(
       apiMessages,
       assistant,
       contextTokenLimit: contextTokenLimit,
@@ -220,6 +227,7 @@ class MessageGenerationService {
       onToolCall: onToolCall,
       hasBuiltInSearch: hasBuiltInSearch,
       lastUserImagePaths: lastUserImagePaths,
+      firstVisibleMessageId: firstVisibleMessageId,
     );
   }
 

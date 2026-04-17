@@ -7052,6 +7052,78 @@ abstract class AppLocalizations {
   /// **'Request failed: '**
   String get requestFailedPrefix;
 
+  /// No description provided for @httpStatus400.
+  ///
+  /// In en, this message translates to:
+  /// **'Bad Request (400)'**
+  String get httpStatus400;
+
+  /// No description provided for @httpStatus401.
+  ///
+  /// In en, this message translates to:
+  /// **'Unauthorized (401)'**
+  String get httpStatus401;
+
+  /// No description provided for @httpStatus403.
+  ///
+  /// In en, this message translates to:
+  /// **'Forbidden (403)'**
+  String get httpStatus403;
+
+  /// No description provided for @httpStatus404.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Found (404)'**
+  String get httpStatus404;
+
+  /// No description provided for @httpStatus408.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Timeout (408)'**
+  String get httpStatus408;
+
+  /// No description provided for @httpStatus429.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate Limited (429)'**
+  String get httpStatus429;
+
+  /// No description provided for @httpStatus500.
+  ///
+  /// In en, this message translates to:
+  /// **'Server Error (500)'**
+  String get httpStatus500;
+
+  /// No description provided for @httpStatus502.
+  ///
+  /// In en, this message translates to:
+  /// **'Bad Gateway (502)'**
+  String get httpStatus502;
+
+  /// No description provided for @httpStatus503.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Unavailable (503)'**
+  String get httpStatus503;
+
+  /// No description provided for @httpStatus504.
+  ///
+  /// In en, this message translates to:
+  /// **'Gateway Timeout (504)'**
+  String get httpStatus504;
+
+  /// No description provided for @httpStatus529.
+  ///
+  /// In en, this message translates to:
+  /// **'Overloaded (529)'**
+  String get httpStatus529;
+
+  /// No description provided for @httpStatusUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'HTTP {code}'**
+  String httpStatusUnknown(int code);
+
   /// No description provided for @titleForLocale.
   ///
   /// In en, this message translates to:
@@ -8401,6 +8473,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} tokens'**
   String tokenDetailTotalTokens(int count);
+
+  /// No description provided for @messageListContextTrimDivider.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages above are not visible to AI'**
+  String get messageListContextTrimDivider;
 
   /// No description provided for @orModelPickerTitle.
   ///

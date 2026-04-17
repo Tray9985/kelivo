@@ -336,6 +336,14 @@ class ChatActions {
             approvalService: approvalService,
           );
 
+      // Resolve trim boundary: find the ChatMessage index of the first message
+      // visible to the AI, and update the UI divider via the view model.
+      final firstId = prepared.firstVisibleMessageId;
+      final rawBoundary = firstId != null
+          ? chatController.indexOfCollapsedMessageId(firstId)
+          : 0;
+      viewModel.updateTrimBoundary(rawBoundary < 0 ? 0 : rawBoundary);
+
       // Build user image paths
       final userImagePaths = messageGenerationService.buildUserImagePaths(
         input: input,
@@ -505,6 +513,12 @@ class ChatActions {
           modelId: modelId,
           approvalService: regenApprovalService,
         );
+
+    final firstId = prepared.firstVisibleMessageId;
+    final rawBoundary = firstId != null
+        ? chatController.indexOfCollapsedMessageId(firstId)
+        : 0;
+    viewModel.updateTrimBoundary(rawBoundary < 0 ? 0 : rawBoundary);
 
     // Build user image paths
     final userImagePaths = messageGenerationService.buildUserImagePaths(

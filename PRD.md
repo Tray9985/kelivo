@@ -104,14 +104,35 @@ fvm flutter build macos --release
 
 ## 12. 发送前自动 Token 裁剪
 
-- 发送消息前根据模型的 `orContextLength` 自动裁剪历史消息
-- 裁剪分两阶段：Phase 1 按条数限制，Phase 2 按 token 预算裁剪（预留 2048 token 给补全）
-- Token 估算公式：`⌈chars / 4⌉ + 4`，保守估算，不依赖外部 tokenizer
+- 发送/重发消息前，基于模型的 `orContextLength` 自动裁剪历史消息，防止 API 报"输入过长"错误
+- **裁剪分两阶段**，turn 完整性在两阶段均受保护（`_advanceToUserMessage` 确保裁剪后首条消息始终是 user 角色，不留悬空的 assistant/tool 消息）：
+  - **Phase 1（条数）**：按助手设置的 `contextMessageSize` 保留最新 N 条，超出的从头部删除
+  - **Phase 2（Token 预算）**：从最新消息向前累加估算 token，找到恰好超出预算的切点，一次性删除切点之前的所有消息；预留 2048 token 给补全输出
+- **Token 估算**：`⌈chars / 2⌉ + 4`，相比英文惯用的 `chars/4` 更保守，适配中文/混合内容场景；不依赖外部 tokenizer
+- **单一来源**：`MessageBuilderService.applyContextLimit` 是唯一裁剪入口，通过 `__srcId` 临时注解将 apiMessage 映射回 `ChatMessage.id`，返回 `firstVisibleMessageId`，由调用链逐级传递至 UI
 - 无 `orContextLength` 时跳过 Phase 2，行为与原来一致
 
 ---
 
-## 13. 桌面端聊天消息选中文字可拖拽滚动
+## 13. 上下文裁剪分割线
+
+- 每次发送/重发后，若发生 Phase 2 token 裁剪，消息列表中在 AI 可见范围的第一条消息前插入红色分割线，标注「以上消息 AI 不可见」
+- 分割线位置与实际发送给 API 的消息范围严格一致（同一计算来源）
+- 切换会话或新建话题时分割线自动清除
+- 分割线水平边距与消息气泡一致
+
+---
+
+## 14. 两步回到顶部
+
+- 消息列表右侧快捷按钮「回到顶部」（双箭头上）的行为：
+  - **第一次点击**（存在上下文裁剪分割线时）：滚动到分割线位置，让用户看到 AI 可见范围的起点
+  - **第二次点击**：滚动到消息列表绝对顶部
+- 用户手动滚动、切换会话后，状态重置，下次点击重新从分割线开始
+
+---
+
+## 15. 桌面端聊天消息选中文字可拖拽滚动
 
 - 在聊天消息列表中拖拽选中文字时，靠近列表上下边缘会自动触发滚动
 - 修复原因：原有 `SelectionArea` 分散在各消息子项内部，Flutter 的自动滚动机制无法跨越边界生效
@@ -120,7 +141,7 @@ fvm flutter build macos --release
 
 ---
 
-## 14. 桌面端失焦时 streaming 持续渲染
+## 16. 桌面端失焦时 streaming 持续渲染
 
 - 修复：在 macOS 上切换到其他应用后，LLM 输出刷新和 loading 动画停止的问题
 - 根因：macOS 切换应用时，Flutter 发出 `inactive → hidden` 生命周期序列，`hidden` 导致 `SchedulerBinding.framesEnabled = false`，所有帧调度（包括 `ValueNotifier` 刷新和 `AnimationController`）冻结
@@ -129,14 +150,14 @@ fvm flutter build macos --release
 
 ---
 
-## 15. macOS 启动图标更新
+## 17. macOS 启动图标更新
 
 - 图标替换为以原始 Logo SVG（rsshub-color.svg）为主体、白色背景、Logo 居中占 80% 面积的方案
 - 替换全部 7 个尺寸：16 / 32 / 64 / 128 / 256 / 512 / 1024px
 
 ---
 
-## 16. 流式请求报错展示优化
+## 18. 流式请求报错展示优化
 
 - **Toast**：报错时固定显示"请求失败，请查看报错信息"，不再将原始错误字符串拼入 toast
 - **消息气泡**：报错不再写入消息 content，改为独立的 `errorText` 字段存储原始错误
@@ -148,27 +169,18 @@ fvm flutter build macos --release
 
 ---
 
-## 17. 输入栏上下文用量圆环
+## 19. 输入栏上下文用量圆环
 
-- 输入栏底部右侧，发送按钮左侧，固定显示一个 18px 圆形进度环
-- 仅在当前模型存在 `orContextLength`（OpenRouter 元数据）时显示，否则隐藏
-- **进度计算**：取最后一条已完成的 AI 消息的 `totalTokens`（= `promptTokens + completionTokens`，API 上报的真实累计值），除以 `orContextLength` 得到比例；消息列表使用 `collapsedMessages`（仅含各消息当前选中版本，与发送时一致）
+- 输入栏底部右侧，发送按钮左侧，显示一个 18px 圆形进度环
+- 仅在当前模型存在 `orContextLength` 时显示，且必须有已完成的 AI 消息（有真实 `promptTokens` 数据）才显示，否则隐藏
+- **进度计算**：取最后一条已完成 AI 消息的 `promptTokens`（API 上报的真实输入 token 数）除以 `orContextLength`，完全准确，不依赖任何估算
 - **三段配色**：< 70% 使用低透明度前景色；70–90% 橙色；≥ 90% 错误红色
 - **Tooltip**：显示「已用 XK / YM」格式（如 `128K / 1M`）
-- **更新时机**：每次 LLM 回答后消息列表变化自动刷新；切换模型或助手时同步更新
 - 移动端与平板/桌面端均显示，不进入 overflow 菜单
 
 ---
 
-## 18. 桌面端引用角标鼠标指针
-
-- Markdown 渲染中的引用角标（citation badge）整块区域显示手型指针（`SystemMouseCursors.click`）
-- 修复：角标内的数字文字原本处于外层 `SelectionArea` 内，鼠标移到数字上会变成文字选中指针
-- 实现：在 `MouseRegion`（cursor=click）内嵌套 `SelectionContainer.disabled`，阻断外层 `SelectionArea` 对角标内容的接管，再内嵌 `GestureDetector` 处理点击事件
-
----
-
-## 19. Token 计数千分符
+## 20. Token 计数千分符
 
 - 消息列表右下角的 token 计数显示增加千分符（如 `206,673`）
 - 实现：在 ARB 模板（`app_en.arb`）的 `@tokenDetailTotalTokens` 占位符 `count` 上添加 `"format": "decimalPattern"`，由 `flutter gen-l10n` 生成 `NumberFormat.decimalPattern` 格式化逻辑
@@ -176,10 +188,26 @@ fvm flutter build macos --release
 
 ---
 
-## 20. 宽屏布局模式
+## 21. 宽屏布局模式
 
 - 设置项：「宽屏布局」，可在移动端「显示」设置页和桌面端「显示」设置面板中切换，持久化至 SharedPreferences（key: `display_widescreen_mode_v1`）
 - 开启后，聊天消息列表与输入栏的最大宽度从 860px 扩展至 1290px（860 × 1.5）
 - 常量定义在 `ChatLayoutConstants.maxWidescreenWidth = maxContentWidth * 1.5`
 - 关闭侧边栏时两侧留白明显减少；侧边栏展开时因可用宽度受限，效果自然缩减
 - 默认关闭，不影响存量用户布局
+
+---
+
+## 22. 联网搜索结果截断（Exa）
+
+- Exa 搜索服务请求时限制每条结果返回的正文长度：`maxCharacters: 2000`
+- 原因：Exa 默认返回完整网页正文，单条结果可达 50K–120K 字符，多条叠加极易超出模型上下文窗口
+- 每条 2000 字符、10 条结果合计约 20K 字符，足够 LLM 理解并引用搜索内容
+
+---
+
+## 23. 流式响应全程 Loading 指示
+
+- assistant 消息气泡在 `isStreaming = true` 期间，始终在内容末尾显示三点 Loading 指示器
+- 覆盖所有阶段：等待首个 token、工具调用中、思考（reasoning）中、思考结束等待正文、正文流式输出中
+- `isStreaming` 变为 false（正常结束、用户停止、异常中断）后指示器自动消失

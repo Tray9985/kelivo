@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/models/model_types.dart';
+import '../../core/utils/token_utils.dart';
 import '../../icons/lucide_adapter.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -46,12 +47,6 @@ class ModelTagWrap extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  static String _fmtCtxSize(int n) {
-    if (n >= 1000000) return '${(n / 1000000).round()}M';
-    if (n >= 1000) return '${(n / 1000).round()}K';
-    return '$n';
   }
 
   // Returns a base color for the context-length badge based on tier:
@@ -189,7 +184,7 @@ class ModelTagWrap extends StatelessWidget {
     );
 
     if (model.contextLength != null && model.contextLength! > 0) {
-      final ctxLabel = _fmtCtxSize(model.contextLength!);
+      final ctxLabel = TokenUtils.format(model.contextLength!);
       final ctxColor = _ctxColor(context, model.contextLength!);
       chips.add(
         Tooltip(
@@ -369,7 +364,7 @@ class ModelCapsulesRow extends StatelessWidget {
     final caps = <Widget>[];
 
     if (model.contextLength != null && model.contextLength! > 0) {
-      final ctxLabel = ModelTagWrap._fmtCtxSize(model.contextLength!);
+      final ctxLabel = TokenUtils.format(model.contextLength!);
       final ctxColor = ModelTagWrap._ctxColor(context, model.contextLength!);
       caps.add(
         Tooltip(

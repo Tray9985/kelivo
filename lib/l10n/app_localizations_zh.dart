@@ -3636,6 +3636,44 @@ class AppLocalizationsZh extends AppLocalizations {
   String get requestFailedPrefix => '请求失败：';
 
   @override
+  String get httpStatus400 => '请求无效 (400)';
+
+  @override
+  String get httpStatus401 => '未授权 (401)';
+
+  @override
+  String get httpStatus403 => '拒绝访问 (403)';
+
+  @override
+  String get httpStatus404 => '资源不存在 (404)';
+
+  @override
+  String get httpStatus408 => '请求超时 (408)';
+
+  @override
+  String get httpStatus429 => '请求过于频繁 (429)';
+
+  @override
+  String get httpStatus500 => '服务器内部错误 (500)';
+
+  @override
+  String get httpStatus502 => '网关错误 (502)';
+
+  @override
+  String get httpStatus503 => '服务不可用 (503)';
+
+  @override
+  String get httpStatus504 => '网关超时 (504)';
+
+  @override
+  String get httpStatus529 => '服务过载 (529)';
+
+  @override
+  String httpStatusUnknown(int code) {
+    return 'HTTP $code';
+  }
+
+  @override
   String get titleForLocale => '新对话';
 
   @override
@@ -4353,6 +4391,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
     return '$countString tokens';
   }
+
+  @override
+  String get messageListContextTrimDivider => '以上消息 AI 不可见';
 
   @override
   String get orModelPickerTitle => '选择 OpenRouter 模型';
@@ -7972,6 +8013,44 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get requestFailedPrefix => '请求失败：';
 
   @override
+  String get httpStatus400 => '请求无效 (400)';
+
+  @override
+  String get httpStatus401 => '未授权 (401)';
+
+  @override
+  String get httpStatus403 => '拒绝访问 (403)';
+
+  @override
+  String get httpStatus404 => '资源不存在 (404)';
+
+  @override
+  String get httpStatus408 => '请求超时 (408)';
+
+  @override
+  String get httpStatus429 => '请求过于频繁 (429)';
+
+  @override
+  String get httpStatus500 => '服务器内部错误 (500)';
+
+  @override
+  String get httpStatus502 => '网关错误 (502)';
+
+  @override
+  String get httpStatus503 => '服务不可用 (503)';
+
+  @override
+  String get httpStatus504 => '网关超时 (504)';
+
+  @override
+  String get httpStatus529 => '服务过载 (529)';
+
+  @override
+  String httpStatusUnknown(int code) {
+    return 'HTTP $code';
+  }
+
+  @override
   String get titleForLocale => '新对话';
 
   @override
@@ -8668,6 +8747,9 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
     return '$countString tokens';
   }
+
+  @override
+  String get messageListContextTrimDivider => '以上消息 AI 不可见';
 
   @override
   String get orModelPickerTitle => '选择 OpenRouter 模型';
@@ -12314,6 +12396,44 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get requestFailedPrefix => '請求失敗：';
 
   @override
+  String get httpStatus400 => '請求無效 (400)';
+
+  @override
+  String get httpStatus401 => '未授權 (401)';
+
+  @override
+  String get httpStatus403 => '拒絕存取 (403)';
+
+  @override
+  String get httpStatus404 => '資源不存在 (404)';
+
+  @override
+  String get httpStatus408 => '請求逾時 (408)';
+
+  @override
+  String get httpStatus429 => '請求過於頻繁 (429)';
+
+  @override
+  String get httpStatus500 => '伺服器內部錯誤 (500)';
+
+  @override
+  String get httpStatus502 => '閘道錯誤 (502)';
+
+  @override
+  String get httpStatus503 => '服務不可用 (503)';
+
+  @override
+  String get httpStatus504 => '閘道逾時 (504)';
+
+  @override
+  String get httpStatus529 => '服務過載 (529)';
+
+  @override
+  String httpStatusUnknown(int code) {
+    return 'HTTP $code';
+  }
+
+  @override
   String get titleForLocale => '新對話';
 
   @override
@@ -13029,6 +13149,9 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
     return '$countString tokens';
   }
+
+  @override
+  String get messageListContextTrimDivider => '以上訊息 AI 不可見';
 
   @override
   String get orModelPickerTitle => '選擇 OpenRouter 模型';
