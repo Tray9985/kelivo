@@ -30,8 +30,8 @@ import 'provider_network_page.dart';
 import '../../../core/services/haptics.dart';
 import '../../provider/widgets/provider_avatar.dart';
 import '../../../utils/model_grouping.dart';
-import '../../../core/utils/openrouter_model_matcher.dart';
-import '../../../shared/dialogs/openrouter_model_picker_dialog.dart';
+import '../../../core/utils/model_catalog_matcher.dart';
+import '../../../shared/dialogs/model_catalog_picker_dialog.dart';
 
 class ProviderDetailPage extends StatefulWidget {
   const ProviderDetailPage({
@@ -2398,7 +2398,7 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
     setState(() => _refreshingMeta.add(modelId));
     final l10n = AppLocalizations.of(context)!;
     try {
-      final catalog = await ProviderManager.fetchOpenRouterCatalog();
+      final catalog = await ProviderManager.fetchModelCatalog();
       if (!mounted) return;
       if (catalog.isEmpty) {
         showAppSnackBar(
@@ -2408,11 +2408,11 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
         );
         return;
       }
-      final result = OpenRouterModelMatcher.match(modelId, catalog);
-      OpenRouterModelMeta? meta;
-      if (result is OpenRouterMatchExact) {
+      final result = ModelCatalogMatcher.match(modelId, catalog);
+      ModelCatalogMeta? meta;
+      if (result is CatalogMatchExact) {
         meta = result.meta;
-      } else if (result is OpenRouterMatchAmbiguous) {
+      } else if (result is CatalogMatchAmbiguous) {
         if (!mounted) return;
         final catalogId = await showOrModelPickerDialog(
           context,
@@ -2480,7 +2480,7 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
     List<dynamic> items = const [];
     bool loading = true;
     String error = '';
-    Map<String, OpenRouterModelMeta> catalog = const {};
+    Map<String, ModelCatalogMeta> catalog = const {};
     // Collapsed state per group in the selector dialog
     final Map<String, bool> collapsed = <String, bool>{};
 
@@ -2515,11 +2515,11 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
                     : ProviderManager.listModels(cfg);
                 final results = await Future.wait<dynamic>([
                   modelsFuture,
-                  ProviderManager.fetchOpenRouterCatalog(),
+                  ProviderManager.fetchModelCatalog(),
                 ]);
                 setLocal(() {
                   items = results[0] as List<ModelInfo>;
-                  catalog = results[1] as Map<String, OpenRouterModelMeta>;
+                  catalog = results[1] as Map<String, ModelCatalogMeta>;
                   loading = false;
                 });
               } catch (e) {
@@ -2540,8 +2540,8 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
               final overrides = Map<String, dynamic>.from(old.modelOverrides);
               bool changed = false;
               for (final modelId in newlyAddedIds) {
-                final result = OpenRouterModelMatcher.match(modelId, catalog);
-                if (result is! OpenRouterMatchExact) continue;
+                final result = ModelCatalogMatcher.match(modelId, catalog);
+                if (result is! CatalogMatchExact) continue;
                 if (!result.meta.hasData) continue;
                 final existing = Map<String, dynamic>.from(
                   (overrides[modelId] as Map?) ?? const {},
@@ -2563,9 +2563,9 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
               String modelId,
             ) async {
               if (catalog.isEmpty) return;
-              final result = OpenRouterModelMatcher.match(modelId, catalog);
+              final result = ModelCatalogMatcher.match(modelId, catalog);
               String? catalogId;
-              if (result is OpenRouterMatchExact) {
+              if (result is CatalogMatchExact) {
                 if (!result.meta.hasData) return;
                 final old = settings.getProviderConfig(
                   widget.keyName,
@@ -2583,7 +2583,7 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
                 );
                 return;
               }
-              final candidates = result is OpenRouterMatchAmbiguous
+              final candidates = result is CatalogMatchAmbiguous
                   ? result.candidateIds
                   : null;
               if (!dialogCtx.mounted) return;
@@ -3385,7 +3385,7 @@ class _ModelCard extends StatelessWidget {
                 ),
                 if (!isSelectionMode) ...[
                   // Show refresh-meta button when meta is absent
-                  if (resolved.ov?[OpenRouterModelMeta.kContextLength] ==
+                  if (resolved.ov?[ModelCatalogMeta.kContextLength] ==
                       null) ...[
                     const SizedBox(width: 4),
                     if (isRefreshingMeta)

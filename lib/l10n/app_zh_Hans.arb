@@ -1524,8 +1524,8 @@
   "tokenDetailDuration": "{value}s",
   "tokenDetailTotalTokens": "{count} tokens",
   "messageListContextTrimDivider": "以上消息 AI 不可见",
-  "orModelPickerTitle": "选择 OpenRouter 模型",
-  "orModelPickerSubtitle": "未能自动匹配此模型，请手动选择对应的 OpenRouter 条目以获取上下文元数据。",
+  "orModelPickerTitle": "选择模型",
+  "orModelPickerSubtitle": "未能自动匹配此模型，请手动选择模型以获取模型信息。",
   "orModelPickerSearchHint": "搜索模型",
   "orModelPickerSkip": "跳过",
   "orModelPickerNoResults": "无匹配模型"

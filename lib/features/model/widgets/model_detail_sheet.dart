@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../core/providers/settings_provider.dart';
 import '../../../core/providers/model_provider.dart';
-import '../../../shared/dialogs/openrouter_model_picker_dialog.dart';
+import '../../../shared/dialogs/model_catalog_picker_dialog.dart';
 import '../../../core/services/api/builtin_tools.dart';
 import '../../../core/services/model_override_resolver.dart';
 import '../../../core/services/logging/flutter_logger.dart';
@@ -107,7 +107,7 @@ class _ModelDetailSheetState extends State<_ModelDetailSheet>
   Set<Modality>? _cachedEmbeddingInput;
 
   // OpenRouter metadata
-  OpenRouterModelMeta? _fetchedMeta;
+  ModelCatalogMeta? _fetchedMeta;
   bool _isFetchingMeta = false;
 
   // Advanced (UI only)
@@ -857,7 +857,7 @@ class _ModelDetailSheetState extends State<_ModelDetailSheet>
     }
     setState(() => _isFetchingMeta = true);
     try {
-      final catalog = await ProviderManager.fetchOpenRouterCatalog();
+      final catalog = await ProviderManager.fetchModelCatalog();
       if (!mounted) return;
       if (catalog.isEmpty) {
         showAppSnackBar(
@@ -987,11 +987,11 @@ class _ModelDetailSheetState extends State<_ModelDetailSheet>
     if (fetchedMeta != null) {
       final m = ov[key] as Map<String, dynamic>;
       if (fetchedMeta.contextLength != null) {
-        m[OpenRouterModelMeta.kContextLength] = fetchedMeta.contextLength;
+        m[ModelCatalogMeta.kContextLength] = fetchedMeta.contextLength;
       }
-      if (fetchedMeta.maxCompletionTokens != null) {
-        m[OpenRouterModelMeta.kMaxCompletionTokens] =
-            fetchedMeta.maxCompletionTokens;
+      if (fetchedMeta.maxOutputTokens != null) {
+        m[ModelCatalogMeta.kMaxOutputTokens] =
+            fetchedMeta.maxOutputTokens;
       }
     }
 

@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/models/chat_input_data.dart';
 import '../../../core/models/assistant.dart';
 import '../../../core/models/chat_message.dart';
-import '../../../core/models/openrouter_model_meta.dart';
+import '../../../core/models/model_catalog_meta.dart';
 import '../../../core/providers/settings_provider.dart';
 import '../../../core/utils/token_utils.dart';
 import '../../../core/providers/assistant_provider.dart';
@@ -236,7 +236,7 @@ class ChatInputSection extends StatelessWidget {
     final cfg = settings.getProviderConfig(providerKey);
     final overrides = cfg.modelOverrides[modelId] as Map?;
     final contextLength =
-        overrides?[OpenRouterModelMeta.kContextLength] as int?;
+        overrides?[ModelCatalogMeta.kContextLength] as int?;
     if (contextLength == null || contextLength <= 0) return null;
 
     final usedTokens = TokenUtils.lastTotalTokens(messages);

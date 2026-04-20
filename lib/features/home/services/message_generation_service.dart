@@ -4,7 +4,7 @@ import '../../../core/models/assistant.dart';
 import '../../../core/models/chat_input_data.dart';
 import '../../../core/models/chat_message.dart';
 import '../../../core/models/conversation.dart';
-import '../../../core/models/openrouter_model_meta.dart';
+import '../../../core/models/model_catalog_meta.dart';
 import '../../../core/providers/settings_provider.dart';
 import '../../../core/services/chat/chat_service.dart';
 import '../../../core/services/model_override_payload_parser.dart';
@@ -197,7 +197,7 @@ class MessageGenerationService {
     // Apply context limit and inline images
     final orOverrides = cfg.modelOverrides[modelId] as Map? ?? const {};
     final contextTokenLimit =
-        orOverrides[OpenRouterModelMeta.kContextLength] as int?;
+        orOverrides[ModelCatalogMeta.kContextLength] as int?;
     final firstVisibleMessageId = messageBuilderService.applyContextLimit(
       apiMessages,
       assistant,

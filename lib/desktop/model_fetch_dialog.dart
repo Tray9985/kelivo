@@ -4,13 +4,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../core/providers/settings_provider.dart';
 import '../core/providers/model_provider.dart';
-import '../core/utils/openrouter_model_matcher.dart';
+import '../core/utils/model_catalog_matcher.dart';
 import '../l10n/app_localizations.dart';
 import '../icons/lucide_adapter.dart' as lucide;
 import '../utils/brand_assets.dart';
 import '../utils/model_grouping.dart';
 import '../shared/widgets/model_tag_wrap.dart';
-import '../shared/dialogs/openrouter_model_picker_dialog.dart';
+import '../shared/dialogs/model_catalog_picker_dialog.dart';
 
 Future<void> showModelFetchDialog(
   BuildContext context, {
@@ -58,7 +58,7 @@ class _ModelFetchDialogBodyState extends State<_ModelFetchDialogBody> {
   bool _loading = true;
   String _error = '';
   List<ModelInfo> _items = const [];
-  Map<String, OpenRouterModelMeta> _catalog = const {};
+  Map<String, ModelCatalogMeta> _catalog = const {};
   final Map<String, bool> _collapsed = <String, bool>{};
 
   @override
@@ -101,12 +101,12 @@ class _ModelFetchDialogBodyState extends State<_ModelFetchDialogBody> {
           : ProviderManager.listModels(cfg);
       final results = await Future.wait<dynamic>([
         modelsFuture,
-        ProviderManager.fetchOpenRouterCatalog(),
+        ProviderManager.fetchModelCatalog(),
       ]);
       if (!mounted) return;
       setState(() {
         _items = results[0] as List<ModelInfo>;
-        _catalog = results[1] as Map<String, OpenRouterModelMeta>;
+        _catalog = results[1] as Map<String, ModelCatalogMeta>;
         _loading = false;
         _error = '';
       });
@@ -131,8 +131,8 @@ class _ModelFetchDialogBodyState extends State<_ModelFetchDialogBody> {
     final overrides = Map<String, dynamic>.from(cfg.modelOverrides);
     bool changed = false;
     for (final modelId in newlyAddedIds) {
-      final result = OpenRouterModelMatcher.match(modelId, _catalog);
-      if (result is! OpenRouterMatchExact) continue;
+      final result = ModelCatalogMatcher.match(modelId, _catalog);
+      if (result is! CatalogMatchExact) continue;
       if (!result.meta.hasData) continue;
       final existing = Map<String, dynamic>.from(
         (overrides[modelId] as Map?) ?? const {},
@@ -152,13 +152,13 @@ class _ModelFetchDialogBodyState extends State<_ModelFetchDialogBody> {
   /// For a single newly-added model: shows picker dialog when auto-match fails.
   Future<void> _resolveAndWriteMetaForModel(String modelId) async {
     if (_catalog.isEmpty || !mounted) return;
-    final result = OpenRouterModelMatcher.match(modelId, _catalog);
-    if (result is OpenRouterMatchExact) {
+    final result = ModelCatalogMatcher.match(modelId, _catalog);
+    if (result is CatalogMatchExact) {
       await _writeSingleMeta(modelId, result.meta);
       return;
     }
     if (!mounted) return;
-    final candidates = result is OpenRouterMatchAmbiguous
+    final candidates = result is CatalogMatchAmbiguous
         ? result.candidateIds
         : null;
     final catalogId = await showOrModelPickerDialog(
@@ -174,7 +174,7 @@ class _ModelFetchDialogBodyState extends State<_ModelFetchDialogBody> {
 
   Future<void> _writeSingleMeta(
     String modelId,
-    OpenRouterModelMeta meta,
+    ModelCatalogMeta meta,
   ) async {
     if (!meta.hasData || !mounted) return;
     final settings = context.read<SettingsProvider>();

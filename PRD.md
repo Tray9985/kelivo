@@ -87,13 +87,13 @@ fvm flutter build macos --release
 
 ---
 
-## 11. OpenRouter 模型元数据自动同步
+## 11. 模型元数据自动同步（models.dev）
 
-- 通过 OpenRouter 公开 API 自动获取模型元数据，写入 `modelOverrides`
-- 同步字段：`orContextLength`（上下文长度）、`abilities`（`tools`、`reasoning`）、`inputModalities`（`image` 等）
+- 通过 [models.dev](https://models.dev) 公开 API（`https://models.dev/api.json`）自动获取模型元数据，写入 `modelOverrides`
+- 同步字段：`contextLength`（上下文长度）、`maxOutputTokens`（最大输出）、`abilities`（`tool`、`reasoning`）、`input`（`image` 等）
 - 支持单模型手动拉取（模型选择弹窗）和批量拉取（供应商详情页）
 - 已有的手动覆盖配置不被自动同步覆盖，采用合并策略（`toFullOverrideMap`）
-- `ModelInfo` 携带 `contextLength` 字段，由 `ModelOverrideResolver.applyModelOverride` 从 `orContextLength` 写入
+- `ModelInfo` 携带 `contextLength` 字段，由 `ModelOverrideResolver.applyModelOverride` 从 `contextLength` 写入
 - **模型列表上下文大小徽章**：所有模型列表（移动端 `ModelTagWrap`、桌面端 `ModelCapsulesRow`）在能力徽章左侧显示上下文大小徽章（K/M 格式），按大小分段配色：
   - `< 32K`：橙色
   - `32K–200K`：主题 Primary 蓝
@@ -198,11 +198,12 @@ fvm flutter build macos --release
 
 ---
 
-## 22. 联网搜索结果截断（Exa）
+## 22. 联网搜索内容提取（Exa）
 
-- Exa 搜索服务请求时限制每条结果返回的正文长度：`maxCharacters: 2000`
-- 原因：Exa 默认返回完整网页正文，单条结果可达 50K–120K 字符，多条叠加极易超出模型上下文窗口
-- 每条 2000 字符、10 条结果合计约 20K 字符，足够 LLM 理解并引用搜索内容
+- Exa 搜索服务使用 `highlights` 模式替代 `text` 模式：`contents.highlights: { query, maxCharacters: 1500 }`
+- `highlights` 由 Exa 模型从页面中提取与 query 最相关的段落，相比直接截取正文前 N 字符质量更高
+- 响应中 `highlights` 字段为字符串数组，拼接后写入 `SearchResultItem.text`
+- `query` 参数传入搜索词，引导 Exa 提取更精准的相关段落
 
 ---
 
@@ -230,6 +231,15 @@ fvm flutter build macos --release
 - 系统提示词输入框右下角增加「恢复默认」文字按钮
 - 点击后将输入框内容替换为默认提示词（同 `assistantProviderDefaultAssistantSystemPrompt`）并立即保存
 - 桌面端：鼠标悬停时显示 `click` 指针，hover/press 透明度动画；移动端：触摸 press 透明度动画
+
+---
+
+## 27. 模型目录匹配弹窗优化
+
+- 弹窗文案去除 OpenRouter 相关描述，改为通用表述：「选择模型」/ 「未能自动匹配此模型，请手动选择模型以获取模型信息」
+- 搜索输入框改为**子序列（subsequence）模糊匹配**：将查询词和模型 ID 均 normalize（转小写、去除 `/`、`-`、`.`），检查查询词的每个字符是否按序出现在 ID 中
+  - 例：输入 `openminimax2` 可命中 `opencode-go/minimax-m2.5`
+  - 支持：片段记忆、缩写、跳过分隔符；不支持：拼写错误、词序颠倒
 
 ---
 

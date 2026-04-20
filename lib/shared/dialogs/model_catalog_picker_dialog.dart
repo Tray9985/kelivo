@@ -2,36 +2,36 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../core/models/openrouter_model_meta.dart';
-import '../../core/utils/openrouter_model_matcher.dart';
+import '../../core/models/model_catalog_meta.dart';
+import '../../core/utils/model_catalog_matcher.dart';
 import '../../icons/lucide_adapter.dart';
 import '../../l10n/app_localizations.dart';
 import '../../shared/widgets/ios_tactile.dart';
 
-/// Resolves an OpenRouter [OpenRouterModelMeta] for [modelId] against [catalog].
+/// Resolves an OpenRouter [ModelCatalogMeta] for [modelId] against [catalog].
 ///
-/// Matching rules (delegated to [OpenRouterModelMatcher]):
+/// Matching rules (delegated to [ModelCatalogMatcher]):
 /// - Exact match → returns the meta directly.
 /// - Ambiguous match → shows a picker pre-filtered to the candidates.
 /// - No match → shows the full catalog picker for manual selection.
 /// - User dismisses any picker → returns `null` (no-op for the caller).
-Future<OpenRouterModelMeta?> resolveOrMeta(
+Future<ModelCatalogMeta?> resolveOrMeta(
   BuildContext context, {
   required String modelId,
-  required Map<String, OpenRouterModelMeta> catalog,
+  required Map<String, ModelCatalogMeta> catalog,
 }) async {
-  final result = OpenRouterModelMatcher.match(modelId, catalog);
+  final result = ModelCatalogMatcher.match(modelId, catalog);
   switch (result) {
-    case OpenRouterMatchExact(:final meta):
+    case CatalogMatchExact(:final meta):
       return meta;
-    case OpenRouterMatchAmbiguous(:final candidateIds):
+    case CatalogMatchAmbiguous(:final candidateIds):
       final chosen = await showOrModelPickerDialog(
         context,
         catalog: catalog,
         candidates: candidateIds,
       );
       return chosen == null ? null : catalog[chosen];
-    case OpenRouterMatchNone():
+    case CatalogMatchNone():
       final chosen = await showOrModelPickerDialog(context, catalog: catalog);
       return chosen == null ? null : catalog[chosen];
   }
@@ -43,7 +43,7 @@ Future<OpenRouterModelMeta?> resolveOrMeta(
 /// Returns the chosen OpenRouter catalog ID, or `null` if the user skips.
 Future<String?> showOrModelPickerDialog(
   BuildContext context, {
-  required Map<String, OpenRouterModelMeta> catalog,
+  required Map<String, ModelCatalogMeta> catalog,
 
   /// Pre-filtered candidate IDs (from ambiguous match). When empty or null,
   /// the full catalog is shown.
@@ -60,7 +60,7 @@ Future<String?> showOrModelPickerDialog(
 class _OrModelPickerDialog extends StatefulWidget {
   const _OrModelPickerDialog({required this.catalog, this.candidates});
 
-  final Map<String, OpenRouterModelMeta> catalog;
+  final Map<String, ModelCatalogMeta> catalog;
   final List<String>? candidates;
 
   @override
@@ -87,10 +87,21 @@ class _OrModelPickerDialogState extends State<_OrModelPickerDialog> {
     super.dispose();
   }
 
+  static String _normalize(String s) =>
+      s.toLowerCase().replaceAll(RegExp(r'[/\-.]'), '');
+
+  static bool _isSubsequence(String query, String target) {
+    int qi = 0;
+    for (int ti = 0; ti < target.length && qi < query.length; ti++) {
+      if (target[ti] == query[qi]) qi++;
+    }
+    return qi == query.length;
+  }
+
   List<String> _filtered() {
-    final q = _search.text.trim().toLowerCase();
+    final q = _normalize(_search.text.trim());
     if (q.isEmpty) return _source;
-    return _source.where((id) => id.toLowerCase().contains(q)).toList();
+    return _source.where((id) => _isSubsequence(q, _normalize(id))).toList();
   }
 
   @override
@@ -230,7 +241,7 @@ class _OrModelPickerDialogState extends State<_OrModelPickerDialog> {
 class _MetaChips extends StatelessWidget {
   const _MetaChips({required this.meta});
 
-  final OpenRouterModelMeta meta;
+  final ModelCatalogMeta meta;
 
   static const double _iconSize = 12;
   static const EdgeInsets _pillPadding = EdgeInsets.symmetric(

@@ -4567,11 +4567,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Messages above are not visible to AI';
 
   @override
-  String get orModelPickerTitle => 'Select OpenRouter Model';
+  String get orModelPickerTitle => 'Select Model';
 
   @override
   String get orModelPickerSubtitle =>
-      'Could not automatically match this model. Select the corresponding OpenRouter entry to fetch context metadata.';
+      'Could not automatically match this model. Please select it manually to fetch model information.';
 
   @override
   String get orModelPickerSearchHint => 'Search models';

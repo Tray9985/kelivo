@@ -4403,11 +4403,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get messageListContextTrimDivider => '以上消息 AI 不可见';
 
   @override
-  String get orModelPickerTitle => '选择 OpenRouter 模型';
+  String get orModelPickerTitle => '选择模型';
 
   @override
-  String get orModelPickerSubtitle =>
-      '未能自动匹配此模型，请手动选择对应的 OpenRouter 条目以获取上下文元数据。';
+  String get orModelPickerSubtitle => '未能自动匹配此模型，请手动选择模型以获取模型信息。';
 
   @override
   String get orModelPickerSearchHint => '搜索模型';
@@ -8766,11 +8765,10 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get messageListContextTrimDivider => '以上消息 AI 不可见';
 
   @override
-  String get orModelPickerTitle => '选择 OpenRouter 模型';
+  String get orModelPickerTitle => '选择模型';
 
   @override
-  String get orModelPickerSubtitle =>
-      '未能自动匹配此模型，请手动选择对应的 OpenRouter 条目以获取上下文元数据。';
+  String get orModelPickerSubtitle => '未能自动匹配此模型，请手动选择模型以获取模型信息。';
 
   @override
   String get orModelPickerSearchHint => '搜索模型';
@@ -13175,11 +13173,10 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get messageListContextTrimDivider => '以上訊息 AI 不可見';
 
   @override
-  String get orModelPickerTitle => '選擇 OpenRouter 模型';
+  String get orModelPickerTitle => '選擇模型';
 
   @override
-  String get orModelPickerSubtitle =>
-      '無法自動匹配此模型，請手動選擇對應的 OpenRouter 條目以獲取上下文元數據。';
+  String get orModelPickerSubtitle => '未能自動匹配此模型，請手動選擇模型以獲取模型資訊。';
 
   @override
   String get orModelPickerSearchHint => '搜尋模型';

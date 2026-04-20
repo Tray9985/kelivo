@@ -6,7 +6,7 @@ import '../icons/lucide_adapter.dart' as lucide;
 import '../l10n/app_localizations.dart';
 import '../core/providers/settings_provider.dart';
 import '../core/providers/model_provider.dart';
-import '../shared/dialogs/openrouter_model_picker_dialog.dart';
+import '../shared/dialogs/model_catalog_picker_dialog.dart';
 import '../core/services/api/builtin_tools.dart';
 import '../core/services/model_override_resolver.dart';
 import '../core/services/logging/flutter_logger.dart';
@@ -108,7 +108,7 @@ class _ModelEditDialogBodyState extends State<_ModelEditDialogBody>
   ProviderKind? _providerKind;
 
   // OpenRouter metadata
-  OpenRouterModelMeta? _fetchedMeta;
+  ModelCatalogMeta? _fetchedMeta;
   bool _isFetchingMeta = false;
 
   // Google built-in tools
@@ -840,7 +840,7 @@ class _ModelEditDialogBodyState extends State<_ModelEditDialogBody>
     }
     setState(() => _isFetchingMeta = true);
     try {
-      final catalog = await ProviderManager.fetchOpenRouterCatalog();
+      final catalog = await ProviderManager.fetchModelCatalog();
       if (!mounted) return;
       if (catalog.isEmpty) {
         showAppSnackBar(
@@ -973,11 +973,11 @@ class _ModelEditDialogBodyState extends State<_ModelEditDialogBody>
     if (fetchedMeta != null) {
       final m = ov[key] as Map<String, dynamic>;
       if (fetchedMeta.contextLength != null) {
-        m[OpenRouterModelMeta.kContextLength] = fetchedMeta.contextLength;
+        m[ModelCatalogMeta.kContextLength] = fetchedMeta.contextLength;
       }
-      if (fetchedMeta.maxCompletionTokens != null) {
-        m[OpenRouterModelMeta.kMaxCompletionTokens] =
-            fetchedMeta.maxCompletionTokens;
+      if (fetchedMeta.maxOutputTokens != null) {
+        m[ModelCatalogMeta.kMaxOutputTokens] =
+            fetchedMeta.maxOutputTokens;
       }
     }
 

@@ -3,7 +3,7 @@ import 'dart:collection';
 import 'package:flutter/foundation.dart';
 
 import '../models/model_types.dart';
-import '../models/openrouter_model_meta.dart';
+import '../models/model_catalog_meta.dart';
 import '../services/logging/flutter_logger.dart';
 
 /// Shared utilities for parsing and applying per-model override maps.
@@ -111,7 +111,7 @@ class ModelOverrideResolver {
     final abilitiesOv = (effectiveType == ModelType.embedding)
         ? null
         : parseAbilities(ov['abilities']);
-    final contextLengthOv = ov[OpenRouterModelMeta.kContextLength] as int?;
+    final contextLengthOv = ov[ModelCatalogMeta.kContextLength] as int?;
 
     final hasOverrides =
         (type != null && type != base.type) ||

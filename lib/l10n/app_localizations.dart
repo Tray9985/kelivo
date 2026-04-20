@@ -8495,13 +8495,13 @@ abstract class AppLocalizations {
   /// No description provided for @orModelPickerTitle.
   ///
   /// In en, this message translates to:
-  /// **'Select OpenRouter Model'**
+  /// **'Select Model'**
   String get orModelPickerTitle;
 
   /// No description provided for @orModelPickerSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Could not automatically match this model. Select the corresponding OpenRouter entry to fetch context metadata.'**
+  /// **'Could not automatically match this model. Please select it manually to fetch model information.'**
   String get orModelPickerSubtitle;
 
   /// No description provided for @orModelPickerSearchHint.

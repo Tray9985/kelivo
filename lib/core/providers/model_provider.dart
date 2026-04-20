@@ -1,5 +1,5 @@
 export '../models/model_types.dart';
-export '../models/openrouter_model_meta.dart';
+export '../models/model_catalog_meta.dart';
 
 import 'dart:convert';
 import 'dart:io' show HttpException;
@@ -12,7 +12,7 @@ import '../services/model_override_payload_parser.dart';
 import 'package:Kelivo/secrets/fallback.dart';
 import '../services/api/google_service_account_auth.dart';
 import '../models/model_types.dart';
-import '../models/openrouter_model_meta.dart';
+import '../models/model_catalog_meta.dart';
 
 class ModelRegistry {
   // Updated model groups to reflect new series
@@ -366,28 +366,34 @@ class ProviderManager {
     return forConfig(cfg).listModels(cfg);
   }
 
-  /// Fetches the OpenRouter public model catalog and returns a map of
-  /// model ID -> [OpenRouterModelMeta].  No API key is required.
+  /// Fetches the models.dev catalog and returns a map of
+  /// model ID -> [ModelCatalogMeta].  No API key is required.
   ///
   /// Returns an empty map on any error so callers can treat it as optional.
-  static Future<Map<String, OpenRouterModelMeta>>
-  fetchOpenRouterCatalog() async {
+  static Future<Map<String, ModelCatalogMeta>> fetchModelCatalog() async {
     final client = http.Client();
     try {
-      final uri = Uri.parse('https://openrouter.ai/api/v1/models');
-      final res = await client.get(
-        uri,
-        headers: {'Content-Type': 'application/json'},
-      );
+      final res = await client.get(Uri.parse('https://models.dev/api.json'));
       if (res.statusCode >= 200 && res.statusCode < 300) {
-        final data = (jsonDecode(res.body)['data'] as List?) ?? [];
-        return {
-          for (final e in data)
-            if (e is Map && e['id'] is String)
-              e['id'] as String: OpenRouterModelMeta.fromOpenRouterJson(
-                Map<String, dynamic>.from(e),
-              ),
-        };
+        final data = jsonDecode(res.body);
+        if (data is! Map) return {};
+        final result = <String, ModelCatalogMeta>{};
+        for (final providerEntry in data.entries) {
+          final provider = providerEntry.value;
+          if (provider is! Map) continue;
+          final providerId = providerEntry.key as String;
+          final models = provider['models'];
+          if (models is! Map) continue;
+          for (final modelEntry in models.entries) {
+            if (modelEntry.value is! Map) continue;
+            final modelId = modelEntry.key as String;
+            final fullId = '$providerId/$modelId';
+            result[fullId] = ModelCatalogMeta.fromModelsDevJson(
+              Map<String, dynamic>.from(modelEntry.value as Map),
+            );
+          }
+        }
+        return result;
       }
     } catch (_) {
       // Metadata is optional; swallow errors silently.

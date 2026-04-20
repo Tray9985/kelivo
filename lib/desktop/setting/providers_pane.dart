@@ -3748,7 +3748,7 @@ class _DesktopProviderDetailPaneState
     final l10n = AppLocalizations.of(context)!;
     setState(() => _refreshingMeta.add(modelId));
     try {
-      final catalog = await ProviderManager.fetchOpenRouterCatalog();
+      final catalog = await ProviderManager.fetchModelCatalog();
       if (!mounted) return;
       if (catalog.isEmpty) {
         showAppSnackBar(
@@ -5979,7 +5979,7 @@ class _ModelRow extends StatelessWidget {
             if (!isSelectionMode) ...[
               ModelCapsulesRow(model: info),
               const SizedBox(width: 8),
-              if (ov?[OpenRouterModelMeta.kContextLength] == null) ...[
+              if (ov?[ModelCatalogMeta.kContextLength] == null) ...[
                 Tooltip(
                   message: l10n.providerDetailPageRefreshMetaTooltip,
                   child: isRefreshingMeta
