@@ -250,3 +250,24 @@ fvm flutter build macos --release
   - 消息内嵌 `[citation](index:id)` 徽章不渲染（`MarkdownWithCodeHighlight` 的 `showCitations` 参数控制）
   - 消息底部来源汇总卡片（`_SourcesSummaryCard`）不显示
 - 搜索工具本身的执行和结果不受影响，LLM 仍会输出引用标记（仅渲染层抑制）
+
+---
+
+## 28. Markdown 列表与标题间距优化
+
+- **列表项垂直间距**：`MarkdownWithCodeHighlight` 自定义的 `orderedListBuilder` / `unOrderedListBuilder` 在每个 list item 外层加 `EdgeInsets.symmetric(vertical: 3)`，相邻列表项产生约 6px 视觉间距，解决长列表项目挤成一团、可读性差的问题
+- **ATX 标题（`#`/`##`/...）上下间距按级别分级**：从原本统一的 `top/bottom = 2.0` 改为：
+  - H1：top 8 / bottom 8
+  - H2：top 8 / bottom 6
+  - H3：top 6 / bottom 5
+  - H4–H6：top 4 / bottom 4
+- 标题与紧随的列表/段落之间获得呼吸感，避免标题与第一行内容直接粘连
+
+---
+
+## 29. Markdown 表格在所有平台自动换行
+
+- 移动端表格不再使用 `IntrinsicColumnWidth` + 横向 `SingleChildScrollView`
+- 移动端与桌面端统一使用 `LayoutBuilder` + `FlexColumnWidth`：表格宽度等于父级可用宽度，列等分，单元格内的 `RichText` 在列宽受限时自动换行
+- 移动端表格不再产生横向滚动，适配窄屏阅读
+- 单元格选择行为差异保留：桌面端用 `SelectableText.rich`，移动端用 `RichText`（与本次布局调整无关）

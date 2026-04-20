@@ -316,18 +316,21 @@ class MarkdownWithCodeHighlight extends StatelessWidget {
           data: mediaQuery.copyWith(textScaler: TextScaler.linear(newScale)),
           child: Directionality(
             textDirection: cfg.textDirection,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              textBaseline: TextBaseline.alphabetic,
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              children: [
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(start: 6, end: 6),
-                  child: Text("$no.", style: style),
-                ),
-                // Keep child as-is so it inherits context MediaQuery scaling once
-                Flexible(child: child),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 3),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                textBaseline: TextBaseline.alphabetic,
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                children: [
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(start: 6, end: 6),
+                    child: Text("$no.", style: style),
+                  ),
+                  // Keep child as-is so it inherits context MediaQuery scaling once
+                  Flexible(child: child),
+                ],
+              ),
             ),
           ),
         );
@@ -349,18 +352,21 @@ class MarkdownWithCodeHighlight extends StatelessWidget {
           data: mediaQuery.copyWith(textScaler: TextScaler.linear(newScale)),
           child: Directionality(
             textDirection: cfg.textDirection,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              textBaseline: TextBaseline.alphabetic,
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              children: [
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(start: 6, end: 6),
-                  child: Text('•', style: style),
-                ),
-                // Keep child untouched to follow context scaling exactly once
-                Flexible(child: child),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 3),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                textBaseline: TextBaseline.alphabetic,
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                children: [
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(start: 6, end: 6),
+                    child: Text('•', style: style),
+                  ),
+                  // Keep child untouched to follow context scaling exactly once
+                  Flexible(child: child),
+                ],
+              ),
             ),
           ),
         );
@@ -451,84 +457,9 @@ class MarkdownWithCodeHighlight extends StatelessWidget {
           );
         }
 
-        // Build a horizontally scrollable table (mobile) or responsive wrapping table (desktop)
-        if (!isDesktop) {
-          // Mobile/tablet: keep horizontal scroll to preserve layout
-          final table = Table(
-            defaultColumnWidth: const IntrinsicColumnWidth(),
-            border: TableBorder(
-              horizontalInside: BorderSide(color: borderColor, width: 0.5),
-              verticalInside: BorderSide(color: borderColor, width: 0.5),
-            ),
-            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-            children: [
-              if (rows.isNotEmpty)
-                TableRow(
-                  decoration: BoxDecoration(color: headerBg),
-                  children: List.generate(maxCol, (i) {
-                    final f = i < rows.first.fields.length
-                        ? rows.first.fields[i]
-                        : null;
-                    final txt = f?.data ?? '';
-                    final align = f?.alignment ?? TextAlign.left;
-                    return cell(
-                      txt,
-                      align,
-                      header: true,
-                      lastCol: i == maxCol - 1,
-                      lastRow: false,
-                    );
-                  }),
-                ),
-              for (int r = 1; r < rows.length; r++)
-                TableRow(
-                  children: List.generate(maxCol, (c) {
-                    final f = c < rows[r].fields.length
-                        ? rows[r].fields[c]
-                        : null;
-                    final txt = f?.data ?? '';
-                    final align = f?.alignment ?? TextAlign.left;
-                    return cell(
-                      txt,
-                      align,
-                      lastCol: c == maxCol - 1,
-                      lastRow: r == rows.length - 1,
-                    );
-                  }),
-                ),
-            ],
-          );
-
-          return SelectionContainer.disabled(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              primary: false,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(ctx).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  // Draw border on top so header row background won't cover top corners
-                  foregroundDecoration: BoxDecoration(
-                    border: Border.all(color: borderColor, width: 0.8),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: DefaultTextStyle.merge(
-                    // Ensure any nested spans fallback to current onSurface instead of stale defaults
-                    style: TextStyle(color: cs.onSurface),
-                    child: table,
-                  ),
-                ),
-              ),
-            ),
-          );
-        }
-
-        // Desktop: fit within available width and wrap cell content.
-        // Do NOT add an inner SelectionArea here to allow selection to span
-        // across the entire message-level SelectionArea wrapper.
+        // Fit table within the available width and wrap cell content on
+        // every platform. Cells handle softWrap themselves; we only constrain
+        // the table to the parent's max width and equally distribute columns.
         return LayoutBuilder(
           builder: (context, constraints) {
             // Use equal flex for all columns so table width == available width.
@@ -2257,17 +2188,19 @@ class AtxHeadingMd extends BlockMd {
       children: MarkdownComponent.generate(context, raw, innerCfg, true),
     );
     final style = _headingTextStyle(context, config, level);
-    // Slightly tighter spacing between headings and body
+    // Give headings room above and below so adjacent lists/paragraphs
+    // don't visually collide with the title.
     final top = switch (level) {
-      1 => 2.0,
-      2 => 2.0,
-      _ => 2.0,
+      1 => 8.0,
+      2 => 8.0,
+      3 => 6.0,
+      _ => 4.0,
     };
     final bottom = switch (level) {
-      1 => 2.0,
-      2 => 2.0,
-      3 => 2.0,
-      _ => 2.0,
+      1 => 8.0,
+      2 => 6.0,
+      3 => 5.0,
+      _ => 4.0,
     };
 
     return Padding(
