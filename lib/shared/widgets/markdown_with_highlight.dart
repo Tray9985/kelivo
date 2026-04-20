@@ -543,6 +543,14 @@ class MarkdownWithCodeHighlight extends StatelessWidget {
         final bool isDarkCtx = Theme.of(ctx).brightness == Brightness.dark;
         final csCtx = Theme.of(ctx).colorScheme;
         final bg = isDarkCtx ? Colors.white12 : const Color(0xFFF1F3F5);
+        // Use SelectableText (not Text) so the inline code text inside the
+        // WidgetSpan can be selected and copied independently. WidgetSpan
+        // children are opaque to the outer SelectionArea / SelectableText.rich
+        // selection systems, so a plain Text would never be selectable.
+        // Trade-off: selection cannot span multiple inline code segments —
+        // each code pill is its own selection island. The copied string keeps
+        // the soft-break zero-width spaces injected by `_softBreakInline`,
+        // which most editors render as invisible / harmless.
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
           decoration: BoxDecoration(
@@ -552,15 +560,13 @@ class MarkdownWithCodeHighlight extends StatelessWidget {
               color: csCtx.outlineVariant.withValues(alpha: 0.22),
             ),
           ),
-          child: Text(
+          child: SelectableText(
             softened,
             style: TextStyle(
               fontFamily: codeFontFamily,
               fontSize: 13,
               height: 1.4,
             ).copyWith(color: csCtx.onSurface),
-            softWrap: true,
-            overflow: TextOverflow.visible,
           ),
         );
       },

@@ -271,3 +271,13 @@ fvm flutter build macos --release
 - 移动端与桌面端统一使用 `LayoutBuilder` + `FlexColumnWidth`：表格宽度等于父级可用宽度，列等分，单元格内的 `RichText` 在列宽受限时自动换行
 - 移动端表格不再产生横向滚动，适配窄屏阅读
 - 单元格选择行为差异保留：桌面端用 `SelectableText.rich`，移动端用 `RichText`（与本次布局调整无关）
+
+---
+
+## 30. Markdown inline code 可独立选中复制
+
+- 受 Flutter 文本选择系统限制：`WidgetSpan` 子组件对父 `SelectionArea` 的跨段选择不透明，inline code 渲染为 `WidgetSpan` 时无法被外层选区捕获
+- 方案：`highlightBuilder` 内部将渲染容器的子组件由 `Text` 改为 `SelectableText`，使每个 inline code 片段成为独立的可选区域
+- 用户可以点击/长按单个 inline code 段落进行选中和复制，但无法跨多个 inline code 段进行连续选区
+- 原有圆角 pill 视觉（`Container` + `BoxDecoration`）保持不变，不引入 `TextStyle.background` 的逐字符背景方案
+- 已知限制：跨 inline code 的连续选区仍不支持（属于 Flutter 框架层限制，非 WebView 架构无法完全规避）
