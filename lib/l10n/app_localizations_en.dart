@@ -2426,6 +2426,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modelDetailSheetReasoningAbility => 'Reasoning';
 
   @override
+  String modelTagContextLengthTooltip(String length) {
+    return 'Context: $length';
+  }
+
+  @override
   String get modelDetailSheetProviderOverrideDescription =>
       'Provider overrides: customize provider for a specific model.';
 

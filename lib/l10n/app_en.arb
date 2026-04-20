@@ -1086,6 +1086,14 @@
   "modelDetailSheetImageMode": "Image",
   "modelDetailSheetToolsAbility": "Tools",
   "modelDetailSheetReasoningAbility": "Reasoning",
+  "modelTagContextLengthTooltip": "Context: {length}",
+  "@modelTagContextLengthTooltip": {
+    "placeholders": {
+      "length": {
+        "type": "String"
+      }
+    }
+  },
   "modelDetailSheetProviderOverrideDescription": "Provider overrides: customize provider for a specific model.",
   "modelDetailSheetAddProviderOverride": "Add Provider Override",
   "modelDetailSheetCustomHeadersTitle": "Custom Headers",

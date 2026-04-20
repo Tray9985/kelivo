@@ -4556,6 +4556,12 @@ abstract class AppLocalizations {
   /// **'Reasoning'**
   String get modelDetailSheetReasoningAbility;
 
+  /// No description provided for @modelTagContextLengthTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Context: {length}'**
+  String modelTagContextLengthTooltip(String length);
+
   /// No description provided for @modelDetailSheetProviderOverrideDescription.
   ///
   /// In en, this message translates to:

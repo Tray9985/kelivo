@@ -2345,6 +2345,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get modelDetailSheetReasoningAbility => '推理';
 
   @override
+  String modelTagContextLengthTooltip(String length) {
+    return '上下文：$length';
+  }
+
+  @override
   String get modelDetailSheetProviderOverrideDescription =>
       '供应商重写：允许为特定模型自定义供应商设置。（暂未实现）';
 
@@ -6726,6 +6731,11 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get modelDetailSheetReasoningAbility => '推理';
+
+  @override
+  String modelTagContextLengthTooltip(String length) {
+    return '上下文：$length';
+  }
 
   @override
   String get modelDetailSheetProviderOverrideDescription =>
@@ -11118,6 +11128,11 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get modelDetailSheetReasoningAbility => '推理';
+
+  @override
+  String modelTagContextLengthTooltip(String length) {
+    return '上下文：$length';
+  }
 
   @override
   String get modelDetailSheetProviderOverrideDescription =>

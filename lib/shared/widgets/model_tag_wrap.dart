@@ -49,17 +49,16 @@ class ModelTagWrap extends StatelessWidget {
     );
   }
 
-  // Returns a base color for the context-length badge based on tier:
-  //   < 32K  → orange (limited)
-  //   < 200K → primary/blue (standard)
-  //   < 1M   → teal (extended)
-  //  >= 1M   → green (massive)
+  // Background color for context-length badge (white text, solid):
+  //   < 32K   → amber
+  //   < 200K  → blue
+  //   < 1M    → purple
+  //  >= 1M    → green
   static Color _ctxColor(BuildContext context, int n) {
-    final cs = Theme.of(context).colorScheme;
-    if (n >= 1000000) return const Color(0xFF4CAF50); // green
-    if (n >= 200000) return const Color(0xFF26A69A); // teal
-    if (n >= 32000) return cs.primary;
-    return const Color(0xFFFF9800); // orange
+    if (n >= 1000000) return const Color(0xFF15803D);
+    if (n >= 200000) return const Color(0xFF7E22CE);
+    if (n >= 32000) return const Color(0xFF1D4ED8);
+    return const Color(0xFFB45309);
   }
 
   @override
@@ -186,31 +185,26 @@ class ModelTagWrap extends StatelessWidget {
     if (model.contextLength != null && model.contextLength! > 0) {
       final ctxLabel = TokenUtils.format(model.contextLength!);
       final ctxColor = _ctxColor(context, model.contextLength!);
+      final ctxTooltip =
+          l10n?.modelTagContextLengthTooltip(ctxLabel) ?? ctxLabel;
       chips.add(
         Tooltip(
-          message: ctxLabel,
+          message: ctxTooltip,
           child: Semantics(
-            label: ctxLabel,
+            label: ctxTooltip,
             child: ExcludeSemantics(
               child: Container(
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? ctxColor.withValues(alpha: 0.30)
-                      : ctxColor.withValues(alpha: 0.22),
+                  color: ctxColor,
                   borderRadius: BorderRadius.circular(999),
-                  border: Border.all(
-                    color: ctxColor.withValues(alpha: 0.55),
-                    width: 0.5,
-                  ),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                 child: Text(
                   ctxLabel,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isDark
-                        ? ctxColor.withValues(alpha: 0.95)
-                        : ctxColor.withValues(alpha: 0.90),
+                  style: const TextStyle(
+                    fontSize: 9,
+                    height: 1.0,
+                    color: Colors.white,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -304,7 +298,7 @@ class ModelCapsulesRow extends StatelessWidget {
     super.key,
     required this.model,
     this.iconSize = 12,
-    this.pillPadding = const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+    this.pillPadding = const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
     this.bgOpacityDark = 0.20,
     this.bgOpacityLight = 0.16,
     this.borderOpacity = 0.25,
@@ -366,32 +360,28 @@ class ModelCapsulesRow extends StatelessWidget {
     if (model.contextLength != null && model.contextLength! > 0) {
       final ctxLabel = TokenUtils.format(model.contextLength!);
       final ctxColor = ModelTagWrap._ctxColor(context, model.contextLength!);
+      final ctxTooltip =
+          l10n?.modelTagContextLengthTooltip(ctxLabel) ?? ctxLabel;
       caps.add(
         Tooltip(
-          message: ctxLabel,
+          message: ctxTooltip,
           child: Semantics(
-            label: ctxLabel,
+            label: ctxTooltip,
             child: ExcludeSemantics(
               child: Container(
-                padding: pillPadding,
+                height: 17,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? ctxColor.withValues(alpha: 0.20)
-                      : ctxColor.withValues(alpha: 0.12),
+                  color: ctxColor,
                   borderRadius: BorderRadius.circular(999),
-                  border: Border.all(
-                    color: ctxColor.withValues(alpha: 0.30),
-                    width: 0.5,
-                  ),
                 ),
                 child: Text(
                   ctxLabel,
-                  style: TextStyle(
-                    fontSize: iconSize,
+                  style: const TextStyle(
+                    fontSize: 10,
                     height: 1.0,
-                    color: isDark
-                        ? ctxColor.withValues(alpha: 0.9)
-                        : ctxColor.withValues(alpha: 0.85),
+                    color: Colors.white,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

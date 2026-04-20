@@ -2393,6 +2393,39 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
 
   // _saveNetwork moved to ProviderNetworkPage
 
+  Future<void> _applyModelMeta(String modelId, ModelCatalogMeta meta) async {
+    final settings = context.read<SettingsProvider>();
+    final cfg = settings.getProviderConfig(
+      widget.keyName,
+      defaultName: widget.displayName,
+    );
+    final overrides = Map<String, dynamic>.from(cfg.modelOverrides);
+    final raw = overrides[modelId];
+    final existing = raw is Map
+        ? Map<String, dynamic>.from({
+            for (final e in raw.entries) e.key.toString(): e.value,
+          })
+        : <String, dynamic>{};
+    existing.addAll(meta.toFullOverrideMap(existing));
+    overrides[modelId] = existing;
+    await settings.setProviderConfig(
+      widget.keyName,
+      cfg.copyWith(modelOverrides: overrides),
+    );
+  }
+
+  Future<bool> _fetchAndSaveMeta(
+    BuildContext ctx,
+    String modelId,
+    Map<String, ModelCatalogMeta> catalog,
+  ) async {
+    final meta = await resolveOrMeta(ctx, modelId: modelId, catalog: catalog);
+    if (!ctx.mounted) return false;
+    if (meta == null || !meta.hasData) return false;
+    await _applyModelMeta(modelId, meta);
+    return true;
+  }
+
   Future<void> _fetchMetaForModel(String modelId) async {
     if (_refreshingMeta.contains(modelId)) return;
     setState(() => _refreshingMeta.add(modelId));
@@ -2408,55 +2441,20 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
         );
         return;
       }
-      final result = ModelCatalogMatcher.match(modelId, catalog);
-      ModelCatalogMeta? meta;
-      if (result is CatalogMatchExact) {
-        meta = result.meta;
-      } else if (result is CatalogMatchAmbiguous) {
-        if (!mounted) return;
-        final catalogId = await showOrModelPickerDialog(
-          context,
-          catalog: catalog,
-          candidates: result.candidateIds,
-        );
-        if (!mounted) return;
-        if (catalogId != null) meta = catalog[catalogId];
-      }
-      if (!mounted) return;
-      if (meta == null || !meta.hasData) {
-        showAppSnackBar(
-          context,
-          message: l10n.providerDetailPageMetaRefreshNotFound,
-          type: NotificationType.warning,
-        );
-        return;
-      }
-      final settings = context.read<SettingsProvider>();
-      final cfg = settings.getProviderConfig(
-        widget.keyName,
-        defaultName: widget.displayName,
-      );
-      final overrides = Map<String, dynamic>.from(cfg.modelOverrides);
-      final existing = Map<String, dynamic>.from(
-        (overrides[modelId] as Map?) ?? const {},
-      );
-      existing.addAll(meta.toFullOverrideMap(existing));
-      overrides[modelId] = existing;
-      await settings.setProviderConfig(
-        widget.keyName,
-        cfg.copyWith(modelOverrides: overrides),
-      );
+      final saved = await _fetchAndSaveMeta(context, modelId, catalog);
       if (!mounted) return;
       showAppSnackBar(
         context,
-        message: l10n.providerDetailPageMetaRefreshSuccess,
-        type: NotificationType.success,
+        message: saved
+            ? l10n.providerDetailPageMetaRefreshSuccess
+            : l10n.providerDetailPageMetaRefreshNotFound,
+        type: saved ? NotificationType.success : NotificationType.warning,
       );
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
       showAppSnackBar(
         context,
-        message: l10n.providerDetailPageMetaRefreshNotFound,
+        message: e.toString(),
         type: NotificationType.error,
       );
     } finally {
@@ -2533,82 +2531,12 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
 
             Future<void> writeMetaBatch(List<String> newlyAddedIds) async {
               if (catalog.isEmpty || newlyAddedIds.isEmpty) return;
-              final old = settings.getProviderConfig(
-                widget.keyName,
-                defaultName: widget.displayName,
-              );
-              final overrides = Map<String, dynamic>.from(old.modelOverrides);
-              bool changed = false;
               for (final modelId in newlyAddedIds) {
                 final result = ModelCatalogMatcher.match(modelId, catalog);
                 if (result is! CatalogMatchExact) continue;
                 if (!result.meta.hasData) continue;
-                final existing = Map<String, dynamic>.from(
-                  (overrides[modelId] as Map?) ?? const {},
-                );
-                existing.addAll(result.meta.toFullOverrideMap(existing));
-                overrides[modelId] = existing;
-                changed = true;
+                await _applyModelMeta(modelId, result.meta);
               }
-              if (changed) {
-                await settings.setProviderConfig(
-                  widget.keyName,
-                  old.copyWith(modelOverrides: overrides),
-                );
-              }
-            }
-
-            Future<void> resolveAndWriteMetaForModel(
-              BuildContext dialogCtx,
-              String modelId,
-            ) async {
-              if (catalog.isEmpty) return;
-              final result = ModelCatalogMatcher.match(modelId, catalog);
-              String? catalogId;
-              if (result is CatalogMatchExact) {
-                if (!result.meta.hasData) return;
-                final old = settings.getProviderConfig(
-                  widget.keyName,
-                  defaultName: widget.displayName,
-                );
-                final overrides = Map<String, dynamic>.from(old.modelOverrides);
-                final existing = Map<String, dynamic>.from(
-                  (overrides[modelId] as Map?) ?? const {},
-                );
-                existing.addAll(result.meta.toFullOverrideMap(existing));
-                overrides[modelId] = existing;
-                await settings.setProviderConfig(
-                  widget.keyName,
-                  old.copyWith(modelOverrides: overrides),
-                );
-                return;
-              }
-              final candidates = result is CatalogMatchAmbiguous
-                  ? result.candidateIds
-                  : null;
-              if (!dialogCtx.mounted) return;
-              catalogId = await showOrModelPickerDialog(
-                dialogCtx,
-                catalog: catalog,
-                candidates: candidates,
-              );
-              if (catalogId == null) return;
-              final meta = catalog[catalogId];
-              if (meta == null || !meta.hasData) return;
-              final old = settings.getProviderConfig(
-                widget.keyName,
-                defaultName: widget.displayName,
-              );
-              final overrides = Map<String, dynamic>.from(old.modelOverrides);
-              final existing = Map<String, dynamic>.from(
-                (overrides[modelId] as Map?) ?? const {},
-              );
-              existing.addAll(meta.toFullOverrideMap(existing));
-              overrides[modelId] = existing;
-              await settings.setProviderConfig(
-                widget.keyName,
-                old.copyWith(modelOverrides: overrides),
-              );
             }
 
             if (loading) {
@@ -3198,9 +3126,10 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
                                                                           );
                                                                           if (!added &&
                                                                               ctx.mounted) {
-                                                                            await resolveAndWriteMetaForModel(
+                                                                            await _fetchAndSaveMeta(
                                                                               ctx,
                                                                               m.id,
+                                                                              catalog,
                                                                             );
                                                                           }
                                                                           setLocal(
