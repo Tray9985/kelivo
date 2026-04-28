@@ -3140,7 +3140,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatMessageWidgetRegenerateConfirmContent.
   ///
   /// In en, this message translates to:
-  /// **'Regenerating will overwrite all messages after this one and cannot be undone. Are you sure?'**
+  /// **'Regenerating only updates this message and keeps the messages below it. Continue?'**
   String get chatMessageWidgetRegenerateConfirmContent;
 
   /// No description provided for @chatMessageWidgetRegenerateConfirmCancel.
@@ -5917,6 +5917,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enable model\'s built-in search'**
   String get searchSettingsSheetBuiltinSearchDescription;
+
+  /// No description provided for @searchSettingsSheetClaudeDynamicSearchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in Search (New)'**
+  String get searchSettingsSheetClaudeDynamicSearchTitle;
+
+  /// No description provided for @searchSettingsSheetClaudeDynamicSearchDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Use `web_search_20260209` with dynamic filtering on supported official Claude models.'**
+  String get searchSettingsSheetClaudeDynamicSearchDescription;
 
   /// No description provided for @searchSettingsSheetWebSearchTitle.
   ///

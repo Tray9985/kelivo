@@ -1584,7 +1584,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get chatMessageWidgetRegenerateConfirmContent =>
-      '重新生成将会覆盖此消息之后的所有消息，且无法撤销。确定要继续吗？';
+      '重新生成只会更新当前消息，不会删除下面的消息。确定要继续吗？';
 
   @override
   String get chatMessageWidgetRegenerateConfirmCancel => '取消';
@@ -3037,6 +3037,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get searchSettingsSheetBuiltinSearchDescription => '是否启用模型内置的搜索功能';
+
+  @override
+  String get searchSettingsSheetClaudeDynamicSearchTitle => '模型内置搜索(新)';
+
+  @override
+  String get searchSettingsSheetClaudeDynamicSearchDescription =>
+      '在支持的 Claude 官方模型上使用 `web_search_20260209`，支持动态过滤能力。';
 
   @override
   String get searchSettingsSheetWebSearchTitle => '网络搜索';
@@ -6003,7 +6010,7 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get chatMessageWidgetRegenerateConfirmContent =>
-      '重新生成将会覆盖此消息之后的所有消息，且无法撤销。确定要继续吗？';
+      '重新生成只会更新当前消息，不会删除下面的消息。确定要继续吗？';
 
   @override
   String get chatMessageWidgetRegenerateConfirmCancel => '取消';
@@ -6582,6 +6589,12 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get defaultModelPageTitleModelSubtitle => '用于总结对话标题的模型，推荐使用快速且便宜的模型';
 
   @override
+  String get defaultModelPageSummaryModelTitle => '摘要模型';
+
+  @override
+  String get defaultModelPageSummaryModelSubtitle => '用于生成对话摘要的模型，推荐使用快速且便宜的模型';
+
+  @override
   String get assistantEditRecentChatsSummaryFrequencyTitle => '摘要更新频率';
 
   @override
@@ -6634,6 +6647,9 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get defaultModelPageTitlePromptHint => '输入用于标题总结的提示词模板';
 
   @override
+  String get defaultModelPageSummaryPromptHint => '输入用于生成摘要的提示词模板';
+
+  @override
   String get defaultModelPageTranslatePromptHint => '输入用于翻译的提示词模板';
 
   @override
@@ -6648,6 +6664,28 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   @override
   String defaultModelPageTitleVars(String contentVar, String localeVar) {
     return '变量: 对话内容: $contentVar, 语言: $localeVar';
+  }
+
+  @override
+  String defaultModelPageSummaryVars(
+    String previousSummaryVar,
+    String userMessagesVar,
+  ) {
+    return '变量：旧摘要：$previousSummaryVar，新消息：$userMessagesVar';
+  }
+
+  @override
+  String get defaultModelPageCompressModelTitle => '压缩模型';
+
+  @override
+  String get defaultModelPageCompressModelSubtitle => '用于压缩对话上下文的模型，推荐使用快速模型';
+
+  @override
+  String get defaultModelPageCompressPromptHint => '输入用于上下文压缩的提示词模板';
+
+  @override
+  String defaultModelPageCompressVars(String contentVar, String localeVar) {
+    return '变量：对话内容：$contentVar，语言：$localeVar';
   }
 
   @override
@@ -7425,6 +7463,13 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get searchSettingsSheetBuiltinSearchDescription => '是否启用模型内置的搜索功能';
+
+  @override
+  String get searchSettingsSheetClaudeDynamicSearchTitle => '模型内置搜索(新)';
+
+  @override
+  String get searchSettingsSheetClaudeDynamicSearchDescription =>
+      '在支持的 Claude 官方模型上使用 `web_search_20260209`，支持动态过滤能力。';
 
   @override
   String get searchSettingsSheetWebSearchTitle => '网络搜索';
@@ -8552,6 +8597,27 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get logSettingsMaxSizeUnlimited => '不限制';
+
+  @override
+  String get assistantEditManageSummariesTitle => '管理摘要';
+
+  @override
+  String get assistantEditSummaryEmpty => '暂无摘要';
+
+  @override
+  String get assistantEditSummaryDialogTitle => '编辑摘要';
+
+  @override
+  String get assistantEditSummaryDialogHint => '输入摘要内容';
+
+  @override
+  String get assistantEditDeleteSummaryTitle => '清除摘要';
+
+  @override
+  String get assistantEditDeleteSummaryContent => '确定要清除此摘要吗？';
+
+  @override
+  String get homePageProcessingFiles => '正在解析文件……';
 
   @override
   String get fileUploadDuplicateTitle => '文件已存在';
@@ -10369,7 +10435,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get chatMessageWidgetRegenerateConfirmContent =>
-      '重新生成將會覆蓋此訊息之後的所有訊息，且無法撤銷。確定要繼續嗎？';
+      '重新生成只會更新目前訊息，不會刪除下面的訊息。確定要繼續嗎？';
 
   @override
   String get chatMessageWidgetRegenerateConfirmCancel => '取消';
@@ -11464,6 +11530,9 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get providersPageAddTooltip => '新增';
 
   @override
+  String get providersPageSearchHint => '搜尋供應商或分組';
+
+  @override
   String get providersPageProviderAddedSnackbar => '已新增供應商';
 
   @override
@@ -11818,6 +11887,13 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get searchSettingsSheetBuiltinSearchDescription => '是否啟用模型內建的搜尋功能';
+
+  @override
+  String get searchSettingsSheetClaudeDynamicSearchTitle => '模型內建搜尋(新)';
+
+  @override
+  String get searchSettingsSheetClaudeDynamicSearchDescription =>
+      '在支援的 Claude 官方模型上使用 `web_search_20260209`，支援動態過濾能力。';
 
   @override
   String get searchSettingsSheetWebSearchTitle => '網路搜尋';
@@ -12965,6 +13041,9 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get assistantEditDeleteSummaryContent => '確定要清除此摘要嗎？';
+
+  @override
+  String get homePageProcessingFiles => '正在解析檔案……';
 
   @override
   String get fileUploadDuplicateTitle => '檔案已存在';

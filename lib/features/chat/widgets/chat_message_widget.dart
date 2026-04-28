@@ -3085,7 +3085,9 @@ _ChatSurfaceForegroundPalette _chatSurfaceForegroundPalette(
       medium: cs.secondary.withValues(alpha: 0.9),
       muted: cs.onSurface.withValues(alpha: 0.5),
       body: cs.onSurface.withValues(alpha: 0.7),
-      divider: cs.outline.withValues(alpha: 0.15),
+      divider: theme.brightness == Brightness.dark
+          ? cs.onSurface.withValues(alpha: 0.24)
+          : cs.outline.withValues(alpha: 0.15),
       accent: cs.primary,
     );
   }

@@ -1629,7 +1629,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatMessageWidgetRegenerateConfirmContent =>
-      'Regenerating will overwrite all messages after this one and cannot be undone. Are you sure?';
+      'Regenerating only updates this message and keeps the messages below it. Continue?';
 
   @override
   String get chatMessageWidgetRegenerateConfirmCancel => 'Cancel';
@@ -3139,6 +3139,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get searchSettingsSheetBuiltinSearchDescription =>
       'Enable model\'s built-in search';
+
+  @override
+  String get searchSettingsSheetClaudeDynamicSearchTitle =>
+      'Built-in Search (New)';
+
+  @override
+  String get searchSettingsSheetClaudeDynamicSearchDescription =>
+      'Use `web_search_20260209` with dynamic filtering on supported official Claude models.';
 
   @override
   String get searchSettingsSheetWebSearchTitle => 'Web Search';
