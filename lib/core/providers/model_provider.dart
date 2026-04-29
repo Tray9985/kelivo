@@ -146,7 +146,13 @@ class OpenAIProvider extends BaseProvider {
               ModelRegistry.infer(
                 ModelInfo(
                   id: e['id'] as String,
-                  displayName: e['id'] as String,
+                  displayName:
+                      ((e['name'] as String?)?.trim().isNotEmpty == true)
+                      ? (e['name'] as String).trim()
+                      : (((e['display_name'] as String?)?.trim().isNotEmpty ==
+                                true)
+                            ? (e['display_name'] as String).trim()
+                            : (e['id'] as String)),
                 ),
               ),
         ];

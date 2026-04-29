@@ -149,6 +149,38 @@ class _ModelFetchDialogBodyState extends State<_ModelFetchDialogBody> {
     }
   }
 
+  Future<void> _writeDisplayNameBatch(
+    Map<String, String> idToDisplayName,
+  ) async {
+    if (idToDisplayName.isEmpty || !mounted) return;
+    final settings = context.read<SettingsProvider>();
+    final cfg = settings.getProviderConfig(
+      widget.providerKey,
+      defaultName: widget.providerDisplayName,
+    );
+    final overrides = Map<String, dynamic>.from(cfg.modelOverrides);
+    bool changed = false;
+    for (final entry in idToDisplayName.entries) {
+      final modelId = entry.key;
+      final displayName = entry.value.trim();
+      if (displayName.isEmpty) continue;
+      final existing = Map<String, dynamic>.from(
+        (overrides[modelId] as Map?) ?? const {},
+      );
+      if ((existing['name']?.toString().trim() ?? '') == displayName) {
+        continue;
+      }
+      existing['name'] = displayName;
+      overrides[modelId] = existing;
+      changed = true;
+    }
+    if (!changed) return;
+    await settings.setProviderConfig(
+      widget.providerKey,
+      cfg.copyWith(modelOverrides: overrides),
+    );
+  }
+
   /// For a single newly-added model: shows picker dialog when auto-match fails.
   Future<void> _resolveAndWriteMetaForModel(String modelId) async {
     if (_catalog.isEmpty || !mounted) return;
@@ -172,10 +204,7 @@ class _ModelFetchDialogBodyState extends State<_ModelFetchDialogBody> {
     await _writeSingleMeta(modelId, meta);
   }
 
-  Future<void> _writeSingleMeta(
-    String modelId,
-    ModelCatalogMeta meta,
-  ) async {
+  Future<void> _writeSingleMeta(String modelId, ModelCatalogMeta meta) async {
     if (!meta.hasData || !mounted) return;
     final settings = context.read<SettingsProvider>();
     final cfg = settings.getProviderConfig(
@@ -400,8 +429,12 @@ class _ModelFetchDialogBodyState extends State<_ModelFetchDialogBody> {
                                                 .where(
                                                   (m) => !setIds.contains(m.id),
                                                 )
-                                                .map((m) => m.id)
                                                 .toList();
+                                            final newlyAddedNameMap =
+                                                <String, String>{
+                                                  for (final m in newlyAdded)
+                                                    m.id: m.displayName,
+                                                };
                                             setIds.addAll(
                                               filtered.map((m) => m.id),
                                             );
@@ -411,7 +444,12 @@ class _ModelFetchDialogBodyState extends State<_ModelFetchDialogBody> {
                                                 models: setIds.toList(),
                                               ),
                                             );
-                                            await _writeMetaBatch(newlyAdded);
+                                            await _writeDisplayNameBatch(
+                                              newlyAddedNameMap,
+                                            );
+                                            await _writeMetaBatch([
+                                              for (final m in newlyAdded) m.id,
+                                            ]);
                                           }
                                           if (mounted) setState(() {});
                                         },
@@ -457,13 +495,13 @@ class _ModelFetchDialogBodyState extends State<_ModelFetchDialogBody> {
                                         ];
                                         if (filtered.isEmpty) return;
                                         final current = cfg.models.toSet();
-                                        final toAdd = <String>[];
+                                        final toAdd = <ModelInfo>[];
                                         for (final m in filtered) {
                                           if (current.contains(m.id)) {
                                             current.remove(m.id);
                                           } else {
                                             current.add(m.id);
-                                            toAdd.add(m.id);
+                                            toAdd.add(m);
                                           }
                                         }
                                         await settings.setProviderConfig(
@@ -472,7 +510,13 @@ class _ModelFetchDialogBodyState extends State<_ModelFetchDialogBody> {
                                             models: current.toList(),
                                           ),
                                         );
-                                        await _writeMetaBatch(toAdd);
+                                        await _writeDisplayNameBatch({
+                                          for (final m in toAdd)
+                                            m.id: m.displayName,
+                                        });
+                                        await _writeMetaBatch([
+                                          for (final m in toAdd) m.id,
+                                        ]);
                                         if (mounted) setState(() {});
                                       },
                                     ),
@@ -659,17 +703,22 @@ class _ModelFetchDialogBodyState extends State<_ModelFetchDialogBody> {
                             } else {
                               final toAdd = grouped[g]!
                                   .where((m) => !selected.contains(m.id))
-                                  .map((m) => m.id)
                                   .toList();
                               if (toAdd.isNotEmpty) {
-                                final set = old.models.toSet()..addAll(toAdd);
+                                final set = old.models.toSet()
+                                  ..addAll(toAdd.map((m) => m.id));
                                 await context
                                     .read<SettingsProvider>()
                                     .setProviderConfig(
                                       widget.providerKey,
                                       old.copyWith(models: set.toList()),
                                     );
-                                await _writeMetaBatch(toAdd);
+                                await _writeDisplayNameBatch({
+                                  for (final m in toAdd) m.id: m.displayName,
+                                });
+                                await _writeMetaBatch([
+                                  for (final m in toAdd) m.id,
+                                ]);
                               }
                             }
                             if (mounted) setState(() {});
@@ -764,7 +813,10 @@ class _ModelFetchDialogBodyState extends State<_ModelFetchDialogBody> {
                       widget.providerKey,
                       old.copyWith(models: list),
                     );
-                    if (!added) await _resolveAndWriteMetaForModel(m.id);
+                    if (!added) {
+                      await _writeDisplayNameBatch({m.id: m.displayName});
+                      await _resolveAndWriteMetaForModel(m.id);
+                    }
                     if (mounted) setState(() {});
                   },
                   icon: Icon(

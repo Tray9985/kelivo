@@ -2414,6 +2414,33 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
     );
   }
 
+  Future<void> _applyModelDisplayName(
+    String modelId,
+    String displayName,
+  ) async {
+    final trimmed = displayName.trim();
+    if (trimmed.isEmpty) return;
+    final settings = context.read<SettingsProvider>();
+    final cfg = settings.getProviderConfig(
+      widget.keyName,
+      defaultName: widget.displayName,
+    );
+    final overrides = Map<String, dynamic>.from(cfg.modelOverrides);
+    final raw = overrides[modelId];
+    final existing = raw is Map
+        ? Map<String, dynamic>.from({
+            for (final e in raw.entries) e.key.toString(): e.value,
+          })
+        : <String, dynamic>{};
+    if ((existing['name']?.toString().trim() ?? '') == trimmed) return;
+    existing['name'] = trimmed;
+    overrides[modelId] = existing;
+    await settings.setProviderConfig(
+      widget.keyName,
+      cfg.copyWith(modelOverrides: overrides),
+    );
+  }
+
   Future<bool> _fetchAndSaveMeta(
     BuildContext ctx,
     String modelId,
@@ -2683,8 +2710,12 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
                                                     (m) =>
                                                         !setIds.contains(m.id),
                                                   )
-                                                  .map((m) => m.id)
                                                   .toList();
+                                              final newlyAddedNameMap =
+                                                  <String, String>{
+                                                    for (final m in newlyAdded)
+                                                      m.id: m.displayName,
+                                                  };
                                               setIds.addAll(
                                                 filtered.map((m) => m.id),
                                               );
@@ -2694,7 +2725,18 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
                                                   models: setIds.toList(),
                                                 ),
                                               );
-                                              await writeMetaBatch(newlyAdded);
+                                              for (final entry
+                                                  in newlyAddedNameMap
+                                                      .entries) {
+                                                await _applyModelDisplayName(
+                                                  entry.key,
+                                                  entry.value,
+                                                );
+                                              }
+                                              await writeMetaBatch([
+                                                for (final m in newlyAdded)
+                                                  m.id,
+                                              ]);
                                             }
                                             setLocal(() {});
                                           },
@@ -2737,13 +2779,13 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
                                         ];
                                         if (filteredNow.isEmpty) return;
                                         final current = old.models.toSet();
-                                        final toAdd = <String>[];
+                                        final toAdd = <ModelInfo>[];
                                         for (final m in filteredNow) {
                                           if (current.contains(m.id)) {
                                             current.remove(m.id);
                                           } else {
                                             current.add(m.id);
-                                            toAdd.add(m.id);
+                                            toAdd.add(m);
                                           }
                                         }
                                         await settings.setProviderConfig(
@@ -2752,7 +2794,15 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
                                             models: current.toList(),
                                           ),
                                         );
-                                        await writeMetaBatch(toAdd);
+                                        for (final m in toAdd) {
+                                          await _applyModelDisplayName(
+                                            m.id,
+                                            m.displayName,
+                                          );
+                                        }
+                                        await writeMetaBatch([
+                                          for (final m in toAdd) m.id,
+                                        ]);
                                         setLocal(() {});
                                       },
                                     ),
@@ -2960,9 +3010,6 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
                                                                           m.id,
                                                                         ),
                                                                   )
-                                                                  .map(
-                                                                    (m) => m.id,
-                                                                  )
                                                                   .toList();
                                                               if (toAdd
                                                                   .isEmpty) {
@@ -2972,7 +3019,10 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
                                                                   old.models
                                                                       .toSet()
                                                                     ..addAll(
-                                                                      toAdd,
+                                                                      toAdd.map(
+                                                                        (m) => m
+                                                                            .id,
+                                                                      ),
                                                                     );
                                                               await settings
                                                                   .setProviderConfig(
@@ -2983,8 +3033,19 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
                                                                           .toList(),
                                                                     ),
                                                                   );
+                                                              for (final m
+                                                                  in toAdd) {
+                                                                await _applyModelDisplayName(
+                                                                  m.id,
+                                                                  m.displayName,
+                                                                );
+                                                              }
                                                               await writeMetaBatch(
-                                                                toAdd,
+                                                                [
+                                                                  for (final m
+                                                                      in toAdd)
+                                                                    m.id,
+                                                                ],
                                                               );
                                                             }
                                                             setLocal(() {});
@@ -3126,6 +3187,13 @@ class _ProviderDetailPageState extends State<ProviderDetailPage> {
                                                                           );
                                                                           if (!added &&
                                                                               ctx.mounted) {
+                                                                            await _applyModelDisplayName(
+                                                                              m.id,
+                                                                              m.displayName,
+                                                                            );
+                                                                            if (!ctx.mounted) {
+                                                                              return;
+                                                                            }
                                                                             await _fetchAndSaveMeta(
                                                                               ctx,
                                                                               m.id,
