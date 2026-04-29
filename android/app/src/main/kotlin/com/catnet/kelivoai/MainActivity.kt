@@ -1,4 +1,4 @@
-package com.catnet.kelivo
+package com.catnet.kelivoai
 
 import android.app.Activity
 import android.content.ActivityNotFoundException
