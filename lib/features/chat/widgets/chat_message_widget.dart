@@ -802,6 +802,38 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
     }
   }
 
+  Future<void> _confirmRegeneration(VoidCallback action) async {
+    final settings = context.read<SettingsProvider>();
+    if (!settings.showRegenerateConfirmDialog) {
+      action();
+      return;
+    }
+
+    final l10n = AppLocalizations.of(context)!;
+    final content = settings.regenerateDeleteTrailingMessages
+        ? l10n.chatMessageWidgetRegenerateConfirmDeleteTrailingContent
+        : l10n.chatMessageWidgetRegenerateConfirmContent;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dctx) => AlertDialog(
+        backgroundColor: Theme.of(dctx).colorScheme.surface,
+        title: Text(l10n.chatMessageWidgetRegenerateConfirmTitle),
+        content: Text(content),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dctx).pop(false),
+            child: Text(l10n.chatMessageWidgetRegenerateConfirmCancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dctx).pop(true),
+            child: Text(l10n.chatMessageWidgetRegenerateConfirmOk),
+          ),
+        ],
+      ),
+    );
+    if (ok == true && mounted) action();
+  }
+
   String _resolveModelDisplayName(SettingsProvider settings) {
     final modelId = widget.message.modelId;
     if (modelId == null || modelId.trim().isEmpty) {
@@ -1487,39 +1519,7 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                             color: cs.onSurface.withValues(alpha: 0.9),
                             onTap: widget.onResend == null
                                 ? null
-                                : () async {
-                                    final ok = await showDialog<bool>(
-                                      context: context,
-                                      builder: (dctx) => AlertDialog(
-                                        backgroundColor: Theme.of(
-                                          dctx,
-                                        ).colorScheme.surface,
-                                        title: Text(
-                                          l10n.chatMessageWidgetRegenerateConfirmTitle,
-                                        ),
-                                        content: Text(
-                                          l10n.chatMessageWidgetRegenerateConfirmContent,
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () =>
-                                                Navigator.of(dctx).pop(false),
-                                            child: Text(
-                                              l10n.chatMessageWidgetRegenerateConfirmCancel,
-                                            ),
-                                          ),
-                                          TextButton(
-                                            onPressed: () =>
-                                                Navigator.of(dctx).pop(true),
-                                            child: Text(
-                                              l10n.chatMessageWidgetRegenerateConfirmOk,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                    if (ok == true) widget.onResend!();
-                                  },
+                                : () => _confirmRegeneration(widget.onResend!),
                           ),
                         ),
                       ),
@@ -2371,39 +2371,9 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                               color: cs.onSurface.withValues(alpha: 0.9),
                               onTap: widget.onRegenerate == null
                                   ? null
-                                  : () async {
-                                      final ok = await showDialog<bool>(
-                                        context: context,
-                                        builder: (dctx) => AlertDialog(
-                                          backgroundColor: Theme.of(
-                                            dctx,
-                                          ).colorScheme.surface,
-                                          title: Text(
-                                            l10n.chatMessageWidgetRegenerateConfirmTitle,
-                                          ),
-                                          content: Text(
-                                            l10n.chatMessageWidgetRegenerateConfirmContent,
-                                          ),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () =>
-                                                  Navigator.of(dctx).pop(false),
-                                              child: Text(
-                                                l10n.chatMessageWidgetRegenerateConfirmCancel,
-                                              ),
-                                            ),
-                                            TextButton(
-                                              onPressed: () =>
-                                                  Navigator.of(dctx).pop(true),
-                                              child: Text(
-                                                l10n.chatMessageWidgetRegenerateConfirmOk,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                      if (ok == true) widget.onRegenerate!();
-                                    },
+                                  : () => _confirmRegeneration(
+                                      widget.onRegenerate!,
+                                    ),
                             ),
                           ),
                         ),

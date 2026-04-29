@@ -466,6 +466,18 @@ class ChatActions {
       return ChatActionResult.error('audio_attachment_unsupported');
     }
 
+    if (settings.regenerateDeleteTrailingMessages) {
+      final removeIds = await messageGenerationService.removeTrailingMessages(
+        messages: _messages,
+        lastKeep: versioning.lastKeep,
+        targetGroupId: versioning.targetGroupId,
+      );
+      if (removeIds.isNotEmpty) {
+        _messages.removeWhere((message) => removeIds.contains(message.id));
+        onMessagesChanged?.call();
+      }
+    }
+
     // Create assistant message placeholder (new version)
     final assistantMessage = await messageGenerationService
         .createAssistantPlaceholder(
@@ -800,6 +812,7 @@ class ChatActions {
             required String name,
             required Map<String, dynamic> arguments,
             String? content,
+            Map<String, dynamic>? metadata,
           }) async {
             await chatService.upsertToolEvent(
               messageId,
@@ -807,6 +820,7 @@ class ChatActions {
               name: name,
               arguments: arguments,
               content: content,
+              metadata: metadata,
             );
           },
     );

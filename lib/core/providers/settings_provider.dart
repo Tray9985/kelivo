@@ -95,6 +95,10 @@ class SettingsProvider extends ChangeNotifier {
       'display_show_tool_result_summary_v1';
   static const String _displayShowSearchCitationsKey =
       'display_show_search_citations_v1';
+  static const String _displayRegenerateDeleteTrailingMessagesKey =
+      'display_regenerate_delete_trailing_messages_v1';
+  static const String _displayShowRegenerateConfirmDialogKey =
+      'display_show_regenerate_confirm_dialog_v1';
   static const String _displayShowMessageNavKey = 'display_show_message_nav_v1';
   static const String _displayUseNewAssistantAvatarUxKey =
       'display_use_new_assistant_avatar_ux_v1';
@@ -150,6 +154,7 @@ class SettingsProvider extends ChangeNotifier {
       'display_enable_assistant_markdown_v1';
   static const String _displayShowChatListDateKey =
       'display_show_chat_list_date_v1';
+  static const String _imageCropperEnabledKey = 'image_cropper_enabled_v1';
   static const String _displayMobileCodeBlockWrapKey =
       'display_mobile_code_block_wrap_v1';
   static const String _displayAutoCollapseCodeBlockKey =
@@ -758,6 +763,10 @@ class SettingsProvider extends ChangeNotifier {
         prefs.getBool(_displayShowToolResultSummaryKey) ?? false;
     _showSearchCitations =
         prefs.getBool(_displayShowSearchCitationsKey) ?? true;
+    _regenerateDeleteTrailingMessages =
+        prefs.getBool(_displayRegenerateDeleteTrailingMessagesKey) ?? false;
+    _showRegenerateConfirmDialog =
+        prefs.getBool(_displayShowRegenerateConfirmDialogKey) ?? true;
     _showMessageNavButtons = prefs.getBool(_displayShowMessageNavKey) ?? true;
     _useNewAssistantAvatarUx =
         prefs.getBool(_displayUseNewAssistantAvatarUxKey) ?? false;
@@ -844,6 +853,7 @@ class SettingsProvider extends ChangeNotifier {
     _enableAssistantMarkdown =
         prefs.getBool(_displayEnableAssistantMarkdownKey) ?? true;
     _showChatListDate = prefs.getBool(_displayShowChatListDateKey) ?? false;
+    _imageCropperEnabled = prefs.getBool(_imageCropperEnabledKey) ?? false;
     _mobileCodeBlockWrap =
         prefs.getBool(_displayMobileCodeBlockWrapKey) ?? false;
     _autoCollapseCodeBlock =
@@ -2824,6 +2834,27 @@ DO NOT GIVE ANSWERS OR DO HOMEWORK FOR THE USER. If the user asks a math or logi
     await prefs.setBool(_displayShowSearchCitationsKey, v);
   }
 
+  bool _regenerateDeleteTrailingMessages = false;
+  bool get regenerateDeleteTrailingMessages =>
+      _regenerateDeleteTrailingMessages;
+  Future<void> setRegenerateDeleteTrailingMessages(bool v) async {
+    if (_regenerateDeleteTrailingMessages == v) return;
+    _regenerateDeleteTrailingMessages = v;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_displayRegenerateDeleteTrailingMessagesKey, v);
+  }
+
+  bool _showRegenerateConfirmDialog = true;
+  bool get showRegenerateConfirmDialog => _showRegenerateConfirmDialog;
+  Future<void> setShowRegenerateConfirmDialog(bool v) async {
+    if (_showRegenerateConfirmDialog == v) return;
+    _showRegenerateConfirmDialog = v;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_displayShowRegenerateConfirmDialogKey, v);
+  }
+
   // Display: show message navigation button
   bool _showMessageNavButtons = true;
   bool get showMessageNavButtons => _showMessageNavButtons;
@@ -3052,6 +3083,17 @@ DO NOT GIVE ANSWERS OR DO HOMEWORK FOR THE USER. If the user asks a math or logi
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_displayShowChatListDateKey, v);
+  }
+
+  // Display: crop images after selecting from gallery or camera
+  bool _imageCropperEnabled = false;
+  bool get imageCropperEnabled => _imageCropperEnabled;
+  Future<void> setImageCropperEnabled(bool v) async {
+    if (_imageCropperEnabled == v) return;
+    _imageCropperEnabled = v;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_imageCropperEnabledKey, v);
   }
 
   // Display: mobile code block word wrap
@@ -3420,6 +3462,8 @@ DO NOT GIVE ANSWERS OR DO HOMEWORK FOR THE USER. If the user asks a math or logi
     copy._autoCollapseThinking = _autoCollapseThinking;
     copy._collapseThinkingSteps = _collapseThinkingSteps;
     copy._showToolResultSummary = _showToolResultSummary;
+    copy._regenerateDeleteTrailingMessages = _regenerateDeleteTrailingMessages;
+    copy._showRegenerateConfirmDialog = _showRegenerateConfirmDialog;
     copy._showMessageNavButtons = _showMessageNavButtons;
     copy._useNewAssistantAvatarUx = _useNewAssistantAvatarUx;
     copy._showProviderInModelCapsule = _showProviderInModelCapsule;

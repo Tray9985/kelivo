@@ -1587,6 +1587,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '重新生成只会更新当前消息，不会删除下面的消息。确定要继续吗？';
 
   @override
+  String get chatMessageWidgetRegenerateConfirmDeleteTrailingContent =>
+      '重新生成将会删除此消息下面的所有消息，且无法撤销。确定要继续吗？';
+
+  @override
   String get chatMessageWidgetRegenerateConfirmCancel => '取消';
 
   @override
@@ -3211,6 +3215,13 @@ class AppLocalizationsZh extends AppLocalizations {
       '在搜索结果中显示内嵌引用标记和来源卡片';
 
   @override
+  String get displaySettingsPageRegenerateDeleteTrailingMessagesTitle =>
+      '重新生成时删除下面的消息';
+
+  @override
+  String get displaySettingsPageShowRegenerateConfirmDialogTitle => '重新生成前弹出确认';
+
+  @override
   String chainOfThoughtExpandSteps(Object count) {
     return '展开更多 $count 步';
   }
@@ -3223,6 +3234,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get displaySettingsPageShowChatListDateSubtitle => '在左侧对话列表中显示日期分组标签';
+
+  @override
+  String get displaySettingsPageEnableImageCropperTitle => '启用图片裁剪';
+
+  @override
+  String get displaySettingsPageEnableImageCropperSubtitle =>
+      '从相册或相机选择图片后，允许裁剪图片';
 
   @override
   String get displaySettingsPageKeepSidebarOpenOnAssistantTapTitle =>
@@ -6013,6 +6031,10 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
       '重新生成只会更新当前消息，不会删除下面的消息。确定要继续吗？';
 
   @override
+  String get chatMessageWidgetRegenerateConfirmDeleteTrailingContent =>
+      '重新生成将会删除此消息下面的所有消息，且无法撤销。确定要继续吗？';
+
+  @override
   String get chatMessageWidgetRegenerateConfirmCancel => '取消';
 
   @override
@@ -7637,6 +7659,13 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
       '在搜索结果中显示内嵌引用标记和来源卡片';
 
   @override
+  String get displaySettingsPageRegenerateDeleteTrailingMessagesTitle =>
+      '重新生成时删除下面的消息';
+
+  @override
+  String get displaySettingsPageShowRegenerateConfirmDialogTitle => '重新生成前弹出确认';
+
+  @override
   String chainOfThoughtExpandSteps(Object count) {
     return '展开更多 $count 步';
   }
@@ -7649,6 +7678,13 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get displaySettingsPageShowChatListDateSubtitle => '在左侧对话列表中显示日期分组标签';
+
+  @override
+  String get displaySettingsPageEnableImageCropperTitle => '启用图片裁剪';
+
+  @override
+  String get displaySettingsPageEnableImageCropperSubtitle =>
+      '从相册或相机选择图片后，允许裁剪图片';
 
   @override
   String get displaySettingsPageKeepSidebarOpenOnAssistantTapTitle =>
@@ -10438,6 +10474,10 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
       '重新生成只會更新目前訊息，不會刪除下面的訊息。確定要繼續嗎？';
 
   @override
+  String get chatMessageWidgetRegenerateConfirmDeleteTrailingContent =>
+      '重新生成將會刪除此訊息下面的所有訊息，且無法復原。確定要繼續嗎？';
+
+  @override
   String get chatMessageWidgetRegenerateConfirmCancel => '取消';
 
   @override
@@ -12061,6 +12101,13 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
       '在搜尋結果中顯示內嵌引用標記和來源卡片';
 
   @override
+  String get displaySettingsPageRegenerateDeleteTrailingMessagesTitle =>
+      '重新生成時刪除下面的訊息';
+
+  @override
+  String get displaySettingsPageShowRegenerateConfirmDialogTitle => '重新生成前彈出確認';
+
+  @override
   String chainOfThoughtExpandSteps(Object count) {
     return '展開更多 $count 步';
   }
@@ -12073,6 +12120,13 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get displaySettingsPageShowChatListDateSubtitle => '在左側對話列表中顯示日期分組標籤';
+
+  @override
+  String get displaySettingsPageEnableImageCropperTitle => '啟用圖片裁剪';
+
+  @override
+  String get displaySettingsPageEnableImageCropperSubtitle =>
+      '從相簿或相機選擇圖片後，允許裁剪圖片';
 
   @override
   String get displaySettingsPageKeepSidebarOpenOnAssistantTapTitle =>

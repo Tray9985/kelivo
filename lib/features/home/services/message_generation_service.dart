@@ -132,7 +132,9 @@ class MessageGenerationService {
       providerKey,
       explicitType: cfg.providerType,
     );
-    final includeOpenAIToolMessages = kind == ProviderKind.openai;
+    final includeToolMessages = switch (kind) {
+      ProviderKind.openai || ProviderKind.claude || ProviderKind.google => true,
+    };
 
     onFileProcessingStarted?.call();
 
@@ -141,7 +143,7 @@ class MessageGenerationService {
       messages: messages,
       versionSelections: versionSelections,
       currentConversation: currentConversation,
-      includeOpenAIToolMessages: includeOpenAIToolMessages,
+      includeToolMessages: includeToolMessages,
     );
 
     // Apply assistant replace-only regexes at send-time (visual stays unchanged).
@@ -419,30 +421,43 @@ class MessageGenerationService {
   }
 
   /// Remove trailing messages after regeneration cut point.
+  @visibleForTesting
+  static List<String> collectTrailingMessageIdsForRemoval({
+    required List<ChatMessage> messages,
+    required int lastKeep,
+    required String? targetGroupId,
+  }) {
+    if (lastKeep >= messages.length - 1) {
+      return const [];
+    }
+
+    final keepGroups = <String>{};
+    for (int i = 0; i <= lastKeep && i < messages.length; i++) {
+      keepGroups.add(messages[i].groupId ?? messages[i].id);
+    }
+    if (targetGroupId != null) keepGroups.add(targetGroupId);
+
+    final removeIds = <String>[];
+    for (final message in messages.sublist(lastKeep + 1)) {
+      final groupId = message.groupId ?? message.id;
+      if (!keepGroups.contains(groupId)) {
+        removeIds.add(message.id);
+      }
+    }
+    return removeIds;
+  }
+
+  /// Remove trailing messages after regeneration cut point.
   Future<List<String>> removeTrailingMessages({
     required List<ChatMessage> messages,
     required int lastKeep,
     required String? targetGroupId,
   }) async {
-    if (lastKeep >= messages.length - 1) {
-      return const [];
-    }
-
-    // Collect groups that appear at or before lastKeep
-    final keepGroups = <String>{};
-    for (int i = 0; i <= lastKeep && i < messages.length; i++) {
-      final g = (messages[i].groupId ?? messages[i].id);
-      keepGroups.add(g);
-    }
-    if (targetGroupId != null) keepGroups.add(targetGroupId);
-
-    final trailing = messages.sublist(lastKeep + 1);
-    final removeIds = <String>[];
-    for (final m in trailing) {
-      final gid = (m.groupId ?? m.id);
-      final shouldKeep = keepGroups.contains(gid);
-      if (!shouldKeep) removeIds.add(m.id);
-    }
+    final removeIds = collectTrailingMessageIdsForRemoval(
+      messages: messages,
+      lastKeep: lastKeep,
+      targetGroupId: targetGroupId,
+    );
 
     for (final id in removeIds) {
       try {

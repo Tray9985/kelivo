@@ -529,6 +529,7 @@
   "chatMessageWidgetRegenerateTooltip": "重新生成",
   "chatMessageWidgetRegenerateConfirmTitle": "確認重新生成",
   "chatMessageWidgetRegenerateConfirmContent": "重新生成只會更新目前訊息，不會刪除下面的訊息。確定要繼續嗎？",
+  "chatMessageWidgetRegenerateConfirmDeleteTrailingContent": "重新生成將會刪除此訊息下面的所有訊息，且無法復原。確定要繼續嗎？",
   "chatMessageWidgetRegenerateConfirmCancel": "取消",
   "chatMessageWidgetRegenerateConfirmOk": "重新生成",
   "chatMessageWidgetStopTooltip": "停止",
@@ -1068,6 +1069,8 @@
   "displaySettingsPageShowToolResultSummarySubtitle": "在工具步驟下方顯示摘要文字",
   "displaySettingsPageShowSearchCitationsTitle": "顯示搜尋引用",
   "displaySettingsPageShowSearchCitationsSubtitle": "在搜尋結果中顯示內嵌引用標記和來源卡片",
+  "displaySettingsPageRegenerateDeleteTrailingMessagesTitle": "重新生成時刪除下面的訊息",
+  "displaySettingsPageShowRegenerateConfirmDialogTitle": "重新生成前彈出確認",
   "chainOfThoughtExpandSteps": "展開更多 {count} 步",
   "@chainOfThoughtExpandSteps": {
     "placeholders": {
@@ -1247,6 +1250,8 @@
   "displaySettingsPageEnableReasoningMarkdownTitle": "思维鏈 Markdown 渲染",
   "displaySettingsPageEnableAssistantMarkdownTitle": "助手訊息 Markdown 渲染",
   "displaySettingsPageEnableMathSubtitle": "渲染 LaTeX 數學公式（行內與區塊）",
+  "displaySettingsPageEnableImageCropperTitle": "啟用圖片裁剪",
+  "displaySettingsPageEnableImageCropperSubtitle": "從相簿或相機選擇圖片後，允許裁剪圖片",
   "displaySettingsPageMobileCodeBlockWrapTitle": "行動端程式碼區塊自動換行",
   "displaySettingsPageAutoCollapseCodeBlockTitle": "自動摺疊程式碼區塊",
   "displaySettingsPageAutoCollapseCodeBlockLinesTitle": "超過多少行自動摺疊",

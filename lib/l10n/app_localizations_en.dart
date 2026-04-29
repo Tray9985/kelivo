@@ -1632,6 +1632,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Regenerating only updates this message and keeps the messages below it. Continue?';
 
   @override
+  String get chatMessageWidgetRegenerateConfirmDeleteTrailingContent =>
+      'Regenerating will delete all messages below this message and cannot be undone. Continue?';
+
+  @override
   String get chatMessageWidgetRegenerateConfirmCancel => 'Cancel';
 
   @override
@@ -3331,6 +3335,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Show inline citation badges and sources card in search results';
 
   @override
+  String get displaySettingsPageRegenerateDeleteTrailingMessagesTitle =>
+      'Delete messages below when regenerating';
+
+  @override
+  String get displaySettingsPageShowRegenerateConfirmDialogTitle =>
+      'Confirm before regenerating';
+
+  @override
   String chainOfThoughtExpandSteps(Object count) {
     return 'Show $count more steps';
   }
@@ -3344,6 +3356,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get displaySettingsPageShowChatListDateSubtitle =>
       'Display date group labels in the conversation list';
+
+  @override
+  String get displaySettingsPageEnableImageCropperTitle =>
+      'Enable Image Cropping';
+
+  @override
+  String get displaySettingsPageEnableImageCropperSubtitle =>
+      'Crop images after selecting from gallery or camera';
 
   @override
   String get displaySettingsPageKeepSidebarOpenOnAssistantTapTitle =>

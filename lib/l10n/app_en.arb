@@ -690,6 +690,7 @@
   "chatMessageWidgetRegenerateTooltip": "Regenerate",
   "chatMessageWidgetRegenerateConfirmTitle": "Confirm Regenerate",
   "chatMessageWidgetRegenerateConfirmContent": "Regenerating only updates this message and keeps the messages below it. Continue?",
+  "chatMessageWidgetRegenerateConfirmDeleteTrailingContent": "Regenerating will delete all messages below this message and cannot be undone. Continue?",
   "chatMessageWidgetRegenerateConfirmCancel": "Cancel",
   "chatMessageWidgetRegenerateConfirmOk": "Regenerate",
   "chatMessageWidgetStopTooltip": "Stop",
@@ -1410,6 +1411,8 @@
   "displaySettingsPageShowToolResultSummarySubtitle": "Display the summary text below tool steps",
   "displaySettingsPageShowSearchCitationsTitle": "Show Search Citations",
   "displaySettingsPageShowSearchCitationsSubtitle": "Show inline citation badges and sources card in search results",
+  "displaySettingsPageRegenerateDeleteTrailingMessagesTitle": "Delete messages below when regenerating",
+  "displaySettingsPageShowRegenerateConfirmDialogTitle": "Confirm before regenerating",
   "chainOfThoughtExpandSteps": "Show {count} more steps",
   "@chainOfThoughtExpandSteps": {
     "placeholders": {
@@ -1419,6 +1422,10 @@
   "chainOfThoughtCollapse": "Collapse",
   "displaySettingsPageShowChatListDateTitle": "Show Chat List Dates",
   "displaySettingsPageShowChatListDateSubtitle": "Display date group labels in the conversation list",
+  "displaySettingsPageEnableImageCropperTitle": "Enable Image Cropping",
+  "@displaySettingsPageEnableImageCropperTitle": {},
+  "displaySettingsPageEnableImageCropperSubtitle": "Crop images after selecting from gallery or camera",
+  "@displaySettingsPageEnableImageCropperSubtitle": {},
   "displaySettingsPageKeepSidebarOpenOnAssistantTapTitle": "Keep sidebar open when selecting assistant",
   "displaySettingsPageKeepSidebarOpenOnTopicTapTitle": "Keep sidebar open when selecting topic",
   "displaySettingsPageKeepAssistantListExpandedOnSidebarCloseTitle": "Don't collapse assistant list when closing sidebar",
